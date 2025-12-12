@@ -8,7 +8,7 @@ export default function Home() {
         <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60 mb-2">
           Homelab OS
         </h1>
-        <p className="text-gray-400">Welcome back, Administrator.</p>
+        <p className="text-gray-400">Welcome back, </p>
       </header>
 
       <SystemStatus />

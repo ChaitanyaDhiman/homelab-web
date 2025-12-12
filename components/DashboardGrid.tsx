@@ -23,7 +23,7 @@ export function DashboardGrid() {
     };
 
     return (
-        <div className="space-y-12">
+        <div className="space-y-8 md:space-y-12">
             {categories.map((category) => (
                 <section key={category} className="space-y-4">
                     <motion.h2

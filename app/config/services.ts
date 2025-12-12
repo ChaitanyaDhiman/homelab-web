@@ -12,37 +12,37 @@ export interface Service {
 
 export const services: Service[] = [
     {
-        id: "open-webui",
-        name: "Open WebUI",
-        description: "AI Chat Interface",
-        url: process.env.NEXT_PUBLIC_SERVICE_OPENWEBUI_URL || "http://localhost:3000",
-        icon: Activity,
-        category: "ai",
-        status: "online",
-    },
-    {
         id: "plex",
         name: "Plex",
         description: "Media Server",
-        url: process.env.NEXT_PUBLIC_SERVICE_PLEX_URL || "http://localhost:32400/web",
+        url: process.env.NEXT_PUBLIC_SERVICE_PLEX_URL || "/unavailable?service=plex",
         icon: Server,
         category: "media",
+        status: "online",
+    },
+    {
+        id: "open-webui",
+        name: "Open WebUI",
+        description: "AI Chat Interface",
+        url: process.env.NEXT_PUBLIC_SERVICE_OPENWEBUI_URL || "/unavailable?service=open-webui",
+        icon: Activity,
+        category: "ai",
         status: "online",
     },
     {
         id: "pihole",
         name: "Pi-hole",
         description: "Network Ad Blocker",
-        url: process.env.NEXT_PUBLIC_SERVICE_PIHOLE_URL || "http://pi.hole/admin",
+        url: process.env.NEXT_PUBLIC_SERVICE_PIHOLE_URL || "/unavailable?service=pihole",
         icon: Shield,
         category: "network",
-        status: "unknown",
+        status: "online",
     },
     {
         id: "portainer",
         name: "Portainer",
         description: "Docker Management",
-        url: process.env.NEXT_PUBLIC_SERVICE_PORTAINER_URL || "http://localhost:9000",
+        url: process.env.NEXT_PUBLIC_SERVICE_PORTAINER_URL || "/unavailable?service=portainer",
         icon: Database,
         category: "system",
         status: "online",
@@ -51,18 +51,18 @@ export const services: Service[] = [
         id: "home-assistant",
         name: "Home Assistant",
         description: "Home Automation",
-        url: process.env.NEXT_PUBLIC_SERVICE_HASS_URL || "http://homeassistant.local:8123",
+        url: process.env.NEXT_PUBLIC_SERVICE_HASS_URL || "/unavailable?service=home-assistant",
         icon: Cloud,
         category: "system",
-        status: "online",
+        status: "offline",
     },
     {
         id: "terminal",
         name: "Terminal",
         description: "Web Terminal",
-        url: process.env.NEXT_PUBLIC_SERVICE_TERMINAL_URL || "http://localhost:7681",
+        url: process.env.NEXT_PUBLIC_SERVICE_TERMINAL_URL || "/unavailable?service=terminal",
         icon: Terminal,
         category: "dev",
-        status: "offline"
+        status: "online"
     }
 ];

@@ -8,8 +8,9 @@ A secure, premium, and customizable dashboard for your local home server. Built 
 
 - 🚀 **Centralized Hub**: Single entry point for all your local services (Plex, Pi-hole, Portainer, etc.).
 - 🎨 **Premium Design**: "Deep Space" theme with glassmorphism, animated backgrounds, and interactive hover effects.
-- ⚡ **Fast & Responsive**: Built on Next.js App Router for optimal performance.
-- 🔒 **Secure Configuration**: Service URLs are configured via environment variables, keeping your local network topology private.
+- ⚡ **Real-time Monitoring**: Live system stats including CPU, RAM, Storage, and Uptime.
+- 🛡️ **Resilient Configuration**: Fallback "Service Unavailable" pages for missing configurations.
+- 🔒 **Secure Configuration**: Service URLs are configured via environment variables.
 - 🛠 **Easy Customization**: Simple configuration file and component architecture.
 
 ## Getting Started
@@ -70,7 +71,7 @@ Open [http://localhost:3000](http://localhost:3000) to view your dashboard.
        id: "new-app",
        name: "My New App",
        description: "Description of the app",
-       url: process.env.NEXT_PUBLIC_SERVICE_NEWAPP_URL || "#",
+       url: process.env.NEXT_PUBLIC_SERVICE_NEWAPP_URL || "/unavailable?service=new-app",
        icon: Layout,
        category: "system", // 'media' | 'system' | 'dev' | 'network' | 'ai'
        status: "online",
@@ -87,8 +88,15 @@ Open [http://localhost:3000](http://localhost:3000) to view your dashboard.
 
 This app is optimized for Docker or Vercel deployment.
 
-### Docker (Coming Soon)
-Dockerfile implementation is planned for containerized deployment.
+### Docker
+
+1. Ensure Docker and Docker Compose are installed.
+2. Build and start the container:
+   ```bash
+   docker compose up -d --build
+   ```
+3. Access the dashboard at [http://localhost:8001](http://localhost:8001).
+
 
 ## License
 
