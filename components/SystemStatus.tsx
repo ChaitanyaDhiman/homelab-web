@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Cpu, HardDrive, Activity, Thermometer, Clock } from "lucide-react";
+import { Cpu, HardDrive, Activity, Thermometer, Clock, Fan } from "lucide-react";
 
 interface SystemStats {
     cpu: number;
@@ -17,6 +17,7 @@ interface SystemStats {
     };
     temperature: number;
     uptime: number;
+    fanSpeed: string;
 }
 
 export function SystemStatus() {
@@ -76,7 +77,7 @@ export function SystemStatus() {
     return (
         <div className="flex flex-col md:flex-row gap-6 mb-12">
             {/* Time Widget */}
-            <div className="glass-panel p-6 rounded-2xl flex-1 flex items-center justify-between">
+            <div className="glass-panel p-6 rounded-2xl w-full sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)] xl:w-[calc(25%-1.125rem)] flex items-center justify-between">
                 <div>
                     <h2 className="text-gray-400 text-sm font-medium uppercase tracking-wider">System Time</h2>
                     <div className="text-4xl font-bold font-mono mt-1 text-white tabular-nums">
@@ -116,6 +117,13 @@ export function SystemStatus() {
                     value={stats?.temperature && stats.temperature > 0 ? `${Math.round(stats.temperature)}°C` : "--"}
                     icon={Thermometer}
                     color="text-red-400"
+                />
+                <div className="w-px h-12 bg-white/10 hidden lg:block" />
+                <StatusItem
+                    label="Fan Speed"
+                    value={stats?.fanSpeed || "Off"}
+                    icon={Fan}
+                    color="text-cyan-400"
                 />
                 <div className="w-px h-12 bg-white/10 hidden lg:block" />
                 <StatusItem
