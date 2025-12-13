@@ -1,0 +1,22 @@
+services:
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    network_mode: host # Recommended for easy local device discovery and networking
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Kolkata
+      - VERSION=docker
+      - PLEX_CLAIM= claim-BMkRKmKUvYTXtxz1H-99
+    volumes:
+      - /opt/plex/config:/config # Maps your local config folder to the container's config path
+      - /opt/plex/tvshows:/tv # Maps your local TV shows folder
+      - /opt/plex/movies:/movies # Maps your local Movies folder
+      # Add more volumes for other media types as needed
+      - /path/to/transcode/temp:/transcode # (Optional) For temporary transcode files
+    restart: unless-stopped
+    # Uncomment the next line for hardware transcoding (Plex Pass required, see docs)
+    # devices:
+    #   - /dev/dri:/dev/dri
+

@@ -1,0 +1,17 @@
+services:
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginx_proxy_manager
+    restart: unless-stopped
+    ports:
+      - '8080:80'
+      - '8443:443'
+      - '82:81'  
+    environment:  
+      - NODE_ENV=production
+      - ENABLE_FEATS=firewall,routing,custom-locations,tcp
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+      - /etc/nginx/passwords/.htpasswd:/etc/nginx/passwords/.htpasswd:ro
+

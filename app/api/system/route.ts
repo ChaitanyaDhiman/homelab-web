@@ -25,7 +25,9 @@ export async function GET() {
                 used: rootFs?.used || 0,
                 pcent: Math.round(rootFs?.use || 0),
             },
-            temperature: temp.main,
+            temperature: temp.cores.length > 0
+                ? Math.round(temp.cores.reduce((a, b) => a + b, 0) / temp.cores.length)
+                : temp.main,
             uptime: time.uptime,
         });
     } catch (error) {

@@ -1,9 +1,12 @@
 services:
   nextjs-dashboard:
     build:
-      context: . # Looks for the Dockerfile in the current directory
+      context: . 
       dockerfile: Dockerfile
     container_name: nextjs_dashboard
     restart: always
     ports:
-      - "8001:3000" # Host port 8001 mapped to container port 8001
+      - "9000:3000"
+    environment:
+      - HOST=0.0.0.0 
+      - PORT=3000

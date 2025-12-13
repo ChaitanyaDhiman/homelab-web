@@ -88,15 +88,44 @@ Open [http://localhost:3000](http://localhost:3000) to view your dashboard.
 
 This app is optimized for Docker or Vercel deployment.
 
-### Docker
+### Docker (Recommended)
 
-1. Ensure Docker and Docker Compose are installed.
-2. Build and start the container:
+This project uses Docker Compose to run the dashboard alongside essential services like Nginx Proxy Manager, Portainer, and Pi-hole.
+
+1. **Prerequisites**: Ensure Docker and Docker Compose are installed.
+2. **Start Services**:
    ```bash
    docker compose up -d --build
    ```
-3. Access the dashboard at [http://localhost:8001](http://localhost:8001).
+   > **Note**: This starts the dashboard on port `9000` (internal) and Nginx Proxy Manager on ports `80`, `81` (Admin), and `443`.
 
+3. **Secure Access (SSL)**:
+   We recommend using Nginx Proxy Manager (included) to expose the dashboard securely.
+   - **Admin UI**: [http://localhost:81](http://localhost:81) (Default login: `admin@example.com` / `changeme`)
+   - **Proxy Host Setup**:
+     1. Add a Proxy Host (e.g., `docker.mylocalserver.com`).
+     2. Forward to `host.docker.internal` (or your server IP) on port `9000`.
+     3. Enable **SSL** (supports Let's Encrypt or Self-Signed).
+        - *Tip*: For local domains like `mylocalserver.com`, generate self-signed certs:
+          ```bash
+          openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout self-signed.key -out self-signed.crt -subj "/CN=docker.mylocalserver.com"
+          ```
+        - Upload these as a "Custom Certificate" in NPM.
+
+### Manual / Vercel
+
+Build and run the production server:
+```bash
+npm run build
+npm start
+```
+
+## System Stats
+The dashboard includes a real-time system monitor. 
+- **CPU**: Shows usage load.
+- **RAM**: Active memory usage.
+- **Temp**: Average temperature of all CPU cores (falls back to Package temp if cores unavailable).
+- **Storage**: Usage of the root `/` partition.
 
 ## License
 
