@@ -8,7 +8,7 @@ services:
       - PGID=1000
       - TZ=Asia/Kolkata
       - VERSION=docker
-      - PLEX_CLAIM= claim-BMkRKmKUvYTXtxz1H-99
+      - PLEX_CLAIM=${PLEX_CLAIM}
     volumes:
       - /opt/plex/config:/config # Maps your local config folder to the container's config path
       - /opt/plex/tvshows:/tv # Maps your local TV shows folder
