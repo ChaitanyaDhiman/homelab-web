@@ -1,0 +1,28 @@
+# ----------------------------
+# Docker Compose file for Docker Services - Homelab Web
+# Services: Cockpit
+# ----------------------------
+
+services:
+# ----------------------------
+# Cockpit
+# ----------------------------
+  cockpit:
+    image: quay.io/cockpit/ws
+    container_name: cockpit
+    restart: unless-stopped
+    privileged: true
+    ports:
+      - "4200:4200"
+    volumes:
+      - /:/host
+      - /run:/run
+      - /etc:/etc
+      - /var:/var
+      - /sys:/sys
+    networks:
+      - proxy_net
+
+networks:
+  proxy_net:
+    external: true

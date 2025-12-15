@@ -1,0 +1,23 @@
+# ----------------------------
+# Docker Compose file for Docker Services - Homelab Web
+# Services: Open WebUI
+# ----------------------------
+
+services:
+  # ----------------------------
+  # OPEN WEBUI
+  # ----------------------------
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    expose:
+      - "8080"
+    volumes:
+      - ./openwebui:/app/backend/data
+    networks:
+      - proxy_net
+      
+networks:
+  proxy_net:
+    external: true

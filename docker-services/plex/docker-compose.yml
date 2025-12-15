@@ -1,0 +1,19 @@
+# ----------------------------
+# Docker Compose file for Docker Services - Homelab Web
+# Services: Plex
+# ----------------------------
+
+services:
+  # ----------------------------
+  # PLEX (HOST NETWORK)
+  # ----------------------------
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Kolkata
+    volumes:
+      - ./plex/config:/config
+      - ./media:/media

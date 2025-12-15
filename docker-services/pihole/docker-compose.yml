@@ -1,0 +1,33 @@
+# ----------------------------
+# Docker Compose file for Docker Services - Homelab Web
+# Services: Pi-hole
+# ----------------------------
+
+services:
+  # ----------------------------
+  # PI-HOLE (DNS ONLY)
+  # ----------------------------
+  pihole:
+    image: pihole/pihole:latest
+    container_name: pihole
+    restart: unless-stopped
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+    environment:
+      TZ: "Asia/Kolkata"
+      FTLCONF_dns_listeningMode: "ALL"
+      FTLCONF_webserver_port: "8081"
+      FTLCONF_webserver_api_password: ${PIHOLE_API_PASSWORD}
+    volumes:
+      - ./pihole/etc-pihole:/etc/pihole
+      - ./pihole/etc-dnsmasq.d:/etc/dnsmasq.d
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - proxy_net
+
+networks:
+  proxy_net:
+    external: true
+

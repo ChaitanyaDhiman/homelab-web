@@ -1,12 +1,15 @@
 services:
-  nextjs-dashboard:
+  nextjs_dashboard:
     build:
-      context: . 
+      context: .
       dockerfile: Dockerfile
     container_name: nextjs_dashboard
-    restart: always
-    ports:
-      - "9000:3000"
-    environment:
-      - HOST=0.0.0.0 
-      - PORT=3000
+    restart: unless-stopped
+    expose:
+      - "3000"
+    networks:
+      - proxy_net
+
+networks:
+  proxy_net:
+    external: true
