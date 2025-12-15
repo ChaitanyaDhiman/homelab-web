@@ -34,6 +34,10 @@ yarn-error.log*
 .env*
 !.env.example
 
+# self-signed certificate
+self-signed.crt
+self-signed.key
+
 # vercel
 .vercel
 
