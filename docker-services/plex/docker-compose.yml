@@ -15,5 +15,5 @@ services:
     environment:
       - TZ=Asia/Kolkata
     volumes:
-      - ./plex/config:/config
-      - ./media:/media
+      - /srv/docker-data/plex/config:/config
+      - /srv/docker-data/plex/media:/media

@@ -2,6 +2,17 @@
 # Docker Compose file for Docker Services - Homelab Web
 # Services: Portainer
 # ----------------------------
+# Things to keep in mind for proper setup
+# ----------------------------
+# Before :
+# run -> docker volume create portainer_data
+# After :
+# Container expires afte 5 mins if admin user is not created. But to create admin user, we need to access portainer.
+# If there is issue with creatingadmin user. Add this in docker-compose.yml
+# ports:
+#      - "9443:9443" (can be any port)
+# remove ports and restart container.
+# ----------------------------
 
 services:
   # ----------------------------
@@ -15,7 +26,7 @@ services:
       - "9443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./portainer:/data
+      - /srv/docker-data/portainer:/data
     networks:
       - proxy_net
 

@@ -14,10 +14,10 @@ services:
     expose:
       - "8080"
     volumes:
-      - ./openwebui:/app/backend/data
+      - /srv/docker-data/openwebui:/app/backend/data
     networks:
       - proxy_net
-      
+
 networks:
   proxy_net:
     external: true

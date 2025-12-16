@@ -1,43 +1,61 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Check if ports are available before starting the services
+# sudo ss -tulnp | grep -E ':80|:443|:53|:82|:8080|:8443|:9000|:32400|:4200'
 
-docker network inspect proxy_net >/dev/null 2>&1 || \
-docker network create proxy_net
+set -e
 
-# Define the list of service files
-NETWORK=("docker-services/nginx-proxy-manager", "docker-services/pihole")
+echo "🔧 Ensuring proxy_net exists..."
+docker network inspect proxy_net >/dev/null 2>&1 || docker network create proxy_net
 
-echo "Starting networking services.."
-for network in "${NETWORK[@]}"; do
-    if [ -d "$network" ]; then
-        echo "Starting $network..."
-        docker compose -f "$network/docker-compose.yml" up -d
-    else
-        echo "Error: $network directory not found"
-        exit 1
-    fi
-done
+# ----------------------------
+# Networking services
+# ----------------------------
+NETWORK_SERVICES=(
+  docker-services/nginx-proxy-manager
+  docker-services/pihole
+)
 
-SERVICES=("docker-services/plex", "docker-services/portainer", "docker-services/cockpit", "docker-services/open-webui")
-
-echo "Starting core services.."
-for service in "${SERVICES[@]}"; do
-    if [ -d "$service" ]; then
-        echo "Starting $service..."
-        docker compose -f "$service/docker-compose.yml" up -d
-    else
-        echo "Error: $service directory not found"
-        exit 1
-    fi
-done
-
-
-echo "Starting Nextjs_dashboard.."
-if [ -f "docker-compose.yml" ]; then
-    echo "Starting nextjs-dashboard..."
-    docker compose up -d --build
-else
-    echo "Error: docker-compose.yml not found"
+echo "🌐 Starting networking services..."
+for dir in "${NETWORK_SERVICES[@]}"; do
+  if [ -d "$dir" ]; then
+    echo "➡️  Starting $dir"
+    docker compose -f "$dir/docker-compose.yml" up -d
+  else
+    echo "❌ Directory not found: $dir"
     exit 1
+  fi
+done
+
+# ----------------------------
+# Core services
+# ----------------------------
+CORE_SERVICES=(
+  docker-services/plex
+  docker-services/portainer
+  docker-services/cockpit
+  docker-services/open-webui
+)
+
+echo "🧩 Starting core services..."
+for dir in "${CORE_SERVICES[@]}"; do
+  if [ -d "$dir" ]; then
+    echo "➡️  Starting $dir"
+    docker compose -f "$dir/docker-compose.yml" up -d
+  else
+    echo "❌ Directory not found: $dir"
+    exit 1
+  fi
+done
+
+# ----------------------------
+# Next.js dashboard (root)
+# ----------------------------
+echo "🖥️  Starting Next.js dashboard..."
+if [ -f docker-compose.yml ]; then
+  docker compose up -d --build
+else
+  echo "❌ docker-compose.yml not found in root directory"
+  exit 1
 fi
 
-echo "All services started successfully"
+echo "✅ All services started successfully"

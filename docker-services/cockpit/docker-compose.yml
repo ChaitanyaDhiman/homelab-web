@@ -2,6 +2,10 @@
 # Docker Compose file for Docker Services - Homelab Web
 # Services: Cockpit
 # ----------------------------
+# Important: 
+# Run Cockpit in Docker (complex, fragile, breaks easily) - Not recommended.
+# Run Cockpit in on system is recommended.
+# 
 
 services:
 # ----------------------------

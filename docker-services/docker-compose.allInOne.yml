@@ -23,8 +23,8 @@ services:
       - "443:443"
       - "82:81"      # NPM admin UI
     volumes:
-      - ./npm/data:/data
-      - ./npm/letsencrypt:/etc/letsencrypt
+      - /srv/docker-data/npm/data:/data
+      - /srv/docker-data/npm/letsencrypt:/etc/letsencrypt
     networks:
       - proxy_net
 
@@ -44,8 +44,8 @@ services:
       FTLCONF_webserver_port: "8081"
       FTLCONF_webserver_api_password: ${PIHOLE_API_PASSWORD}
     volumes:
-      - ./pihole/etc-pihole:/etc/pihole
-      - ./pihole/etc-dnsmasq.d:/etc/dnsmasq.d
+      - /srv/docker-data/pihole/etc-pihole:/etc/pihole
+      - /srv/docker-data/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
     cap_add:
       - NET_ADMIN
     networks:
@@ -61,7 +61,7 @@ services:
     expose:
       - "8080"
     volumes:
-      - ./openwebui:/app/backend/data
+      - /srv/docker-data/openwebui:/app/backend/data
     networks:
       - proxy_net
 
@@ -76,7 +76,7 @@ services:
       - "9443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./portainer:/data
+      - /srv/docker-data/portainer:/data
     networks:
       - proxy_net
 
@@ -91,6 +91,6 @@ services:
     environment:
       - TZ=Asia/Kolkata
     volumes:
-      - ./plex/config:/config
-      - ./media:/media
+      - /srv/docker-data/plex/config:/config
+      - /srv/docker-data/plex/media:/media
 
