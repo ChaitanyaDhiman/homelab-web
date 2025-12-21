@@ -30,10 +30,11 @@ done
 # Core services
 # ----------------------------
 CORE_SERVICES=(
-  docker-services/plex
+  docker-services/jellyfin
   docker-services/portainer
   docker-services/cockpit
   docker-services/open-webui
+  docker-services/watchtower
 )
 
 echo "🧩 Starting core services..."

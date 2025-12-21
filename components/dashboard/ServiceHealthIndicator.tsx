@@ -1,47 +1,74 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CheckCircle2, XCircle, AlertCircle, Activity } from 'lucide-react';
-
+import { services } from '@/app/config/services';
+import { AlertCircle } from 'lucide-react';
 
 interface ServiceHealth {
-    id: string;
-    name: string;
     status: 'online' | 'offline' | 'degraded';
     responseTime?: number;
-    statusCode?: number;
     error?: string;
-}
-
-interface HealthResponse {
-    services: ServiceHealth[];
 }
 
 export function ServiceHealthIndicator({ serviceId }: { serviceId: string }) {
     const [health, setHealth] = useState<ServiceHealth | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
 
     useEffect(() => {
-        const fetchHealth = async () => {
+        const service = services.find(s => s.id === serviceId);
+        if (!service || !service.url || service.url.startsWith('/')) {
+            setHealth({ status: 'offline', error: 'Service URL not configured' });
+            setLoading(false);
+            return;
+        }
+
+        const checkHealth = async () => {
+            const startTime = performance.now();
+
             try {
-                const res = await fetch('/api/health');
-                if (!res.ok) throw new Error('Failed to fetch');
-                const data: HealthResponse = await res.json();
-                const serviceData = data.services.find(s => s.id === serviceId);
-                if (serviceData) {
-                    setHealth(serviceData);
-                    setError(false);
+                // Use no-cors mode for cross-origin requests
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+                await fetch(service.url, {
+                    method: 'HEAD',
+                    mode: 'no-cors', // Allows cross-origin without CORS headers
+                    cache: 'no-store',
+                    signal: controller.signal,
+                });
+
+                clearTimeout(timeoutId);
+                const endTime = performance.now();
+                const responseTime = Math.round(endTime - startTime);
+                const isDegraded = responseTime > 2000;
+
+                setHealth({
+                    status: isDegraded ? 'degraded' : 'online',
+                    responseTime,
+                });
+            } catch (error) {
+                const endTime = performance.now();
+                const responseTime = Math.round(endTime - startTime);
+
+                // If we got a quick response, it might be CORS-blocked but service is up
+                if (responseTime < 1000) {
+                    setHealth({
+                        status: 'online',
+                        responseTime,
+                    });
+                } else {
+                    setHealth({
+                        status: 'offline',
+                        error: error instanceof Error ? error.message : 'Connection failed',
+                    });
                 }
-            } catch {
-                setError(true);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchHealth();
-        const interval = setInterval(fetchHealth, 30000);
+        checkHealth();
+        const interval = setInterval(checkHealth, 30000);
         return () => clearInterval(interval);
     }, [serviceId]);
 
@@ -53,7 +80,7 @@ export function ServiceHealthIndicator({ serviceId }: { serviceId: string }) {
         );
     }
 
-    if (error || !health) {
+    if (!health) {
         return (
             <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-gray-500" title="Unknown Status" />
@@ -70,14 +97,14 @@ export function ServiceHealthIndicator({ serviceId }: { serviceId: string }) {
         }
     };
 
-    const statusClass = getStatusColor(health.status);
-
     const getResponseTimeColor = (ms: number) => {
         if (ms < 200) return 'text-green-500';
         if (ms < 500) return 'text-yellow-500';
         if (ms < 2000) return 'text-orange-500';
         return 'text-red-500';
     };
+
+    const statusClass = getStatusColor(health.status);
 
     return (
         <div className="flex items-center gap-2">

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, XCircle, AlertCircle, Activity, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { services } from '@/app/config/services';
 
 interface HealthSummaryData {
     total: number;
@@ -11,9 +12,10 @@ interface HealthSummaryData {
     offline: number;
 }
 
-interface HealthResponse {
-    summary: HealthSummaryData;
-    timestamp: string;
+interface ServiceHealth {
+    id: string;
+    status: 'online' | 'offline' | 'degraded';
+    responseTime?: number;
 }
 
 export function HealthSummary() {
@@ -24,13 +26,58 @@ export function HealthSummary() {
     const [isExpanded, setIsExpanded] = useState(false);
 
     useEffect(() => {
-        const fetchHealth = async () => {
+        const checkAllServices = async () => {
             try {
-                const res = await fetch('/api/health');
-                if (!res.ok) throw new Error('Failed to fetch');
-                const json: HealthResponse = await res.json();
-                setData(json.summary);
-                setLastChecked(new Date(json.timestamp).toLocaleTimeString());
+                const results: ServiceHealth[] = await Promise.all(
+                    services.map(async (service) => {
+                        if (!service.url || service.url.startsWith('/')) {
+                            return { id: service.id, status: 'offline' as const };
+                        }
+
+                        const startTime = performance.now();
+                        try {
+                            const controller = new AbortController();
+                            const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+                            await fetch(service.url, {
+                                method: 'HEAD',
+                                mode: 'no-cors',
+                                cache: 'no-store',
+                                signal: controller.signal,
+                            });
+
+                            clearTimeout(timeoutId);
+                            const endTime = performance.now();
+                            const responseTime = Math.round(endTime - startTime);
+                            const isDegraded = responseTime > 2000;
+
+                            return {
+                                id: service.id,
+                                status: isDegraded ? ('degraded' as const) : ('online' as const),
+                                responseTime,
+                            };
+                        } catch {
+                            const endTime = performance.now();
+                            const responseTime = Math.round(endTime - startTime);
+
+                            // Quick response might be CORS-blocked but service is up
+                            if (responseTime < 1000) {
+                                return { id: service.id, status: 'online' as const, responseTime };
+                            }
+                            return { id: service.id, status: 'offline' as const };
+                        }
+                    })
+                );
+
+                const summary: HealthSummaryData = {
+                    total: results.length,
+                    online: results.filter(s => s.status === 'online').length,
+                    degraded: results.filter(s => s.status === 'degraded').length,
+                    offline: results.filter(s => s.status === 'offline').length,
+                };
+
+                setData(summary);
+                setLastChecked(new Date().toLocaleTimeString());
                 setError(false);
             } catch {
                 setError(true);
@@ -39,8 +86,8 @@ export function HealthSummary() {
             }
         };
 
-        fetchHealth();
-        const interval = setInterval(fetchHealth, 30000);
+        checkAllServices();
+        const interval = setInterval(checkAllServices, 30000);
         return () => clearInterval(interval);
     }, []);
 
