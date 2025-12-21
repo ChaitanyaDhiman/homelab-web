@@ -9,6 +9,7 @@ A secure, premium, and customizable dashboard for your local home server. Built 
 - 🚀 **Centralized Hub**: Single entry point for all your local services (Plex, Pi-hole, Portainer, Open WebUI, etc.)
 - 🎨 **Premium Design**: "Deep Space" theme with glassmorphism, animated backgrounds, and interactive hover effects
 - ⚡ **Real-time Monitoring**: Live system stats including CPU, RAM, Storage, and Temperature
+- 🏥 **Service Health Monitoring**: Real-time health checks with response time tracking and color-coded status indicators
 - 🖥️ **Integrated Terminal**: Built-in web terminal with xterm.js for server management
 - 🐳 **Docker Integration**: Includes Docker Compose setup for essential homelab services
 - 🛡️ **Resilient Configuration**: Fallback "Service Unavailable" pages for missing configurations
@@ -149,6 +150,7 @@ For secure access with HTTPS:
 homelab-web/
 ├── app/                      # Next.js app directory
 │   ├── api/                  # API routes
+│   │   ├── health/          # Service health check endpoint
 │   │   ├── system/          # System stats endpoint
 │   │   └── terminal/        # Terminal WebSocket handler
 │   ├── config/              # Configuration files
@@ -225,6 +227,53 @@ The dashboard includes real-time system monitoring:
 
 System stats are fetched from the `/api/system` endpoint using the `systeminformation` library.
 
+## 🏥 Service Health Monitoring
+
+The dashboard includes comprehensive real-time health monitoring for all configured services:
+
+### Features
+
+- **Real-time Health Checks**: Automatic health checks every 30 seconds
+- **Response Time Tracking**: Color-coded response times for performance insights
+  - 🟢 Green: < 200ms (Excellent)
+  - 🟡 Yellow: 200-500ms (Good)
+  - 🟠 Orange: 500-2000ms (Slow)
+  - 🔴 Red: > 2000ms (Degraded)
+- **Status Indicators**: Visual status badges on each service card
+- **Health Summary Widget**: Expandable overview showing:
+  - Overall health percentage
+  - Count of online, degraded, and offline services
+  - Animated progress bar with color-coded health states
+  - Last checked timestamp
+- **Smart Status Detection**: Handles authentication-required services (401/403) and self-signed certificates
+
+### Health API Endpoint
+
+The `/api/health` endpoint provides comprehensive health data:
+
+```json
+{
+  "services": [
+    {
+      "id": "jellyfin",
+      "name": "Jellyfin",
+      "status": "online",
+      "responseTime": 145,
+      "statusCode": 200,
+      "lastChecked": "2025-12-21T12:30:00.000Z"
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "online": 5,
+    "degraded": 1,
+    "offline": 0
+  },
+  "timestamp": "2025-12-21T12:30:00.000Z"
+}
+```
+
+
 ## 🖥️ Web Terminal
 
 Access your server's terminal directly from the browser:
@@ -296,6 +345,13 @@ docker-compose up -d --build --force-recreate
 - Check WebSocket connection in browser DevTools
 - Ensure node-pty is properly installed
 - Verify terminal permissions on the host system
+
+### Health Monitoring Not Working
+
+- Check `/api/health` endpoint in browser DevTools
+- Verify service URLs are correctly configured in `.env.local`
+- For self-signed certificate errors, the API automatically handles them
+- Check browser console for any CORS or network errors
 
 ## 📚 Additional Resources
 

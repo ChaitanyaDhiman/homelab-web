@@ -43,7 +43,7 @@ export function DashboardGrid() {
                         {services
                             .filter((s) => s.category === category)
                             .map((service) => (
-                                <motion.div key={service.id} variants={item}>
+                                <motion.div key={service.id} variants={item} className="h-full">
                                     <ServiceCard service={service} />
                                 </motion.div>
                             ))}

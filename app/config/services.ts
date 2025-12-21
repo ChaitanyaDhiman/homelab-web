@@ -14,7 +14,7 @@ export const services: Service[] = [
     {
         id: "jellyfin",
         name: "Jellyfin",
-        description: "Media Server",
+        description: "Media streaming server for movies, TV shows, and music",
         url: process.env.NEXT_PUBLIC_SERVICE_JELLYFIN_URL || "/unavailable?service=jellyfin",
         icon: Server,
         category: "media",
@@ -23,7 +23,7 @@ export const services: Service[] = [
     {
         id: "open-webui",
         name: "Open WebUI",
-        description: "AI Chat Interface",
+        description: "AI chat interface with local LLM support via Ollama",
         url: process.env.NEXT_PUBLIC_SERVICE_OPENWEBUI_URL || "/unavailable?service=open-webui",
         icon: Activity,
         category: "ai",
@@ -32,7 +32,7 @@ export const services: Service[] = [
     {
         id: "pihole",
         name: "Pi-hole",
-        description: "Network Ad Blocker",
+        description: "Network-wide ad blocking and DNS management",
         url: process.env.NEXT_PUBLIC_SERVICE_PIHOLE_URL || "/unavailable?service=pihole",
         icon: Shield,
         category: "network",
@@ -41,20 +41,11 @@ export const services: Service[] = [
     {
         id: "portainer",
         name: "Portainer",
-        description: "Docker Management",
+        description: "Docker container management and monitoring",
         url: process.env.NEXT_PUBLIC_SERVICE_PORTAINER_URL || "/unavailable?service=portainer",
         icon: Database,
         category: "system",
         status: "online",
-    },
-    {
-        id: "home-assistant",
-        name: "Home Assistant",
-        description: "Home Automation",
-        url: process.env.NEXT_PUBLIC_SERVICE_HASS_URL || "/unavailable?service=home-assistant",
-        icon: Cloud,
-        category: "system",
-        status: "offline",
     },
     {
         id: "terminal",
@@ -62,7 +53,16 @@ export const services: Service[] = [
         description: "Web Terminal",
         url: process.env.NEXT_PUBLIC_SERVICE_TERMINAL_URL || "/unavailable?service=terminal",
         icon: Terminal,
-        category: "dev",
+        category: "system",
+        status: "online"
+    },
+    {
+        id: "nginx-proxy-manager",
+        name: "Nginx Proxy Manager",
+        description: "Reverse Proxy",
+        url: process.env.NEXT_PUBLIC_SERVICE_NPM_URL || "/unavailable?service=nginx-proxy-manager",
+        icon: Cloud,
+        category: "network",
         status: "online"
     }
 ];

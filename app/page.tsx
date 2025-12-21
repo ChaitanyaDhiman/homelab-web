@@ -1,5 +1,6 @@
 import { DashboardGrid } from "@/components/DashboardGrid";
 import { SystemStatus } from "@/components/SystemStatus";
+import { HealthSummary } from "@/components/dashboard/HealthSummary";
 
 export default function Home() {
   return (
@@ -12,6 +13,10 @@ export default function Home() {
       </header>
 
       <SystemStatus />
+
+      <div className="mb-8">
+        <HealthSummary />
+      </div>
 
       <DashboardGrid />
     </div>
