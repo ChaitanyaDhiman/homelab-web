@@ -1,0 +1,60 @@
+# ----------------------------
+# Docker Compose file for Docker Services - Homelab Web
+# Services: Jellyfin
+# ----------------------------
+
+services:
+  # ----------------------------
+  # JELLYFIN (HOST NETWORK)
+  # ----------------------------
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    networks:
+      - proxy_net
+    expose:
+      - "8096" # Expose port for initial setup (can remove later)
+    ports:
+      - "8096:8096"
+    volumes:
+      # Jellyfin config and cache
+      - /srv/docker-data/jellyfin/config:/config
+      - /srv/docker-data/jellyfin/cache:/cache
+      
+      # Media directories - ADD YOUR PATHS LATER
+      # Uncomment and update these lines when you decide on storage:
+      # - /path/to/movies:/media/movies
+      # - /path/to/tvshows:/media/tvshows
+      # - /path/to/music:/media/music
+      # - /path/to/photos:/media/photos
+      # - /mnt/external-drive:/media/external
+    
+    environment:
+      - PUID=1000  # Run: id -u to get your user ID
+      - PGID=1000  # Run: id -g to get your group ID
+      - TZ=Asia/Kolkata
+      - JELLYFIN_PublishedServerUrl=https://jellyfin.homes
+
+networks:
+  proxy_net:
+    external: true
+
+# ============================================
+# INSTRUCTIONS FOR ADDING MEDIA LATER:
+# ============================================
+# 
+# When you're ready to add media:
+# 1. Stop Jellyfin: docker-compose down
+# 2. Edit this file and uncomment/add volume mounts
+# 3. Restart: docker-compose up -d
+# 4. In Jellyfin web UI: Dashboard → Libraries → Add Library
+# 5. Point to /media/movies, /media/tvshows, etc.
+# 6. Scan library
+#
+# You can add/remove media paths anytime without losing:
+# - User accounts
+# - Watch history
+# - Settings
+# - Metadata (as long as /config volume persists)
+# ============================================

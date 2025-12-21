@@ -12,10 +12,10 @@ export interface Service {
 
 export const services: Service[] = [
     {
-        id: "plex",
-        name: "Plex",
+        id: "jellyfin",
+        name: "Jellyfin",
         description: "Media Server",
-        url: process.env.NEXT_PUBLIC_SERVICE_PLEX_URL || "/unavailable?service=plex",
+        url: process.env.NEXT_PUBLIC_SERVICE_JELLYFIN_URL || "/unavailable?service=jellyfin",
         icon: Server,
         category: "media",
         status: "online",

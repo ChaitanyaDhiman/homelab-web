@@ -46,6 +46,7 @@ See the [docker-services README](./docker-services/README.md) for detailed docum
    ```bash
    git clone https://github.com/ChaitanyaDhiman/homelab-web.git
    cd homelab-web
+   chmod +x start-homelab.sh
    ```
 
 2. **Install dependencies**:
@@ -85,22 +86,43 @@ docker-compose up -d --build
 
 The dashboard will be available on port `3000` (internal, exposed via proxy).
 
-### Option 2: Full Stack (Dashboard + Services)
+### Option 2: Full Stack (Recommended)
 
-Deploy the dashboard along with all homelab services:
+The easiest way to deploy the dashboard along with all homelab services is using the included helper script. This handles network creation and starts services in the correct order.
 
-1. **Start the dashboard**:
+```bash
+./start-homelab.sh
+```
+
+This script will:
+1. Create the necessary Docker network (`proxy_net`)
+2. Start networking services (Nginx Proxy Manager, Pi-hole)
+3. Start core services (Plex, Portainer, Open WebUI)
+4. Build and start the Next.js dashboard
+
+### Manual Full Stack Deployment
+
+If you prefer to start services manually:
+
+1. **Create the network**:
+   ```bash
+   docker network create proxy_net || true
+   ```
+
+2. **Start the dashboard**:
    ```bash
    docker-compose up -d --build
    ```
 
-2. **Start the services**:
+3. **Start the services**:
    ```bash
    cd docker-services
-   docker-compose up -d
+   # Visit each service directory and update configurations
+   docker-compose -f nginx-proxy-manager/docker-compose.yml up -d
+   # ... repeat for other services
    ```
 
-3. **Configure Nginx Proxy Manager**:
+4. **Configure Nginx Proxy Manager**:
    - Access admin UI at `http://localhost:82`
    - Default credentials: `admin@example.com` / `changeme`
    - Set up proxy hosts for your services (see [docker-services README](./docker-services/README.md))
@@ -145,6 +167,7 @@ homelab-web/
 ├── public/                 # Static assets
 ├── docker-compose.yml      # Dashboard compose file
 ├── Dockerfile              # Dashboard container image
+├── start-homelab.sh        # Deployment helper script
 ├── .env.example            # Environment variables template
 └── README.md               # This file
 ```
@@ -227,7 +250,7 @@ npm run lint     # Run ESLint
 - **Framework**: Next.js 16 (App Router)
 - **React**: 19.2
 - **Styling**: Tailwind CSS 4
-- **Animations**: Framer Motion
+- **Animations**: Framer Motion 12
 - **Icons**: Lucide React
 - **Terminal**: xterm.js + node-pty
 - **System Info**: systeminformation

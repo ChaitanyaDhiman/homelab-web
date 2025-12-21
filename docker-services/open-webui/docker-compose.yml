@@ -11,6 +11,8 @@ services:
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
     restart: unless-stopped
+    environment:
+      - 'OLLAMA_BASE_URL=http://192.168.29.197:11434'
     expose:
       - "8080"
     volumes:
