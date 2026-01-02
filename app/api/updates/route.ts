@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import fs from 'fs';
 
 const execAsync = promisify(exec);
 
@@ -65,8 +66,13 @@ async function checkRebootRequired(): Promise<{ required: boolean; packages: str
 
 async function getUpdateStats(): Promise<{ total: number; security: number }> {
     try {
-        // Check for available updates
-        await execAsync('apt-get update 2>/dev/null || true');
+        // Check if running inside Docker
+        const isDocker = fs.existsSync('/.dockerenv');
+
+        // Check for available updates - Skip update if in Docker to avoid write errors on read-only mount
+        if (!isDocker) {
+            await execAsync('apt-get update 2>/dev/null || true');
+        }
 
         const { stdout: updates } = await execAsync('apt list --upgradable 2>/dev/null | grep -v "Listing" | wc -l');
         const { stdout: security } = await execAsync('apt list --upgradable 2>/dev/null | grep -i security | wc -l');

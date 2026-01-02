@@ -249,14 +249,16 @@ The dashboard includes comprehensive real-time health monitoring for all configu
   - Count of online, degraded, and offline services
   - Animated progress bar with color-coded health states
 
-## 🖥️ Web Terminal
+## 🖥️ Cockpit Server Management
 
-Access your server's terminal directly from the browser:
+Access comprehensive server management through Cockpit:
 
-- Built with xterm.js and node-pty
-- Real-time WebSocket connection
-- Full terminal emulation support
-- Secure access through the dashboard
+- Web-based server administration interface
+- Real-time system monitoring and metrics
+- Service management and logs viewer
+- Terminal access directly in the browser
+- Storage and network configuration
+- Integrated with your homelab services
 
 ## 🛠️ Development
 
@@ -276,7 +278,7 @@ npm run lint     # Run ESLint
 - **Styling**: Tailwind CSS 4
 - **Animations**: Framer Motion 12
 - **Icons**: Lucide React
-- **Terminal**: xterm.js + node-pty
+- **Server Management**: Cockpit (Docker service)
 - **System Info**: systeminformation
 - **TypeScript**: Full type safety
 
@@ -315,11 +317,12 @@ docker-compose up -d --build --force-recreate
 - Check `/api/system` endpoint in browser DevTools
 - Verify `systeminformation` package is installed
 
-### Terminal Not Working
+### Cockpit Not Accessible
 
-- Check WebSocket connection in browser DevTools
-- Ensure node-pty is properly installed
-- Verify terminal permissions on the host system
+- Verify Cockpit service is running: `docker ps | grep cockpit`
+- Check Nginx Proxy Manager configuration for Cockpit
+- Ensure port 9090 is not blocked by firewall
+- Check Cockpit logs: `docker logs cockpit`
 
 ## 📚 Additional Resources
 

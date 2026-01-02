@@ -133,26 +133,41 @@ export function HealthSummary() {
             <div className="rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm overflow-hidden transition-colors hover:bg-white/[0.07]">
                 <button
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="w-full p-4 flex items-center justify-between"
+                    className="w-full p-4 sm:p-6"
                 >
-                    <div className="flex items-center gap-4">
-                        <Activity className="w-5 h-5 text-blue-400" />
-                        <h2 className="text-lg font-semibold text-white">Service Health</h2>
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
+                        <div className="flex items-center gap-3 sm:gap-4 w-full md:w-auto">
+                            <Activity className="w-5 h-5 text-blue-400 flex-shrink-0" />
+                            <h2 className="text-base sm:text-lg font-semibold text-white">Service Health</h2>
 
-                        {!isExpanded && (
-                            <div className="flex items-center gap-3 px-3 py-1 rounded-full bg-black/20 border border-white/5">
-                                <div className={`w-2 h-2 rounded-full animate-pulse ${healthStatus === 'green' ? 'bg-green-500' :
+                            {!isExpanded && (
+                                <div className="hidden md:flex items-center gap-3 px-3 py-1 rounded-full bg-black/20 border border-white/5">
+                                    <div className={`w-2 h-2 rounded-full animate-pulse ${healthStatus === 'green' ? 'bg-green-500' :
                                         healthStatus === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'
-                                    }`} />
-                                <span className="text-xs text-gray-300">
-                                    {healthPercentage}% - {data.online}/{data.total} Services Online
-                                </span>
-                            </div>
-                        )}
-                    </div>
+                                        }`} />
+                                    <span className="text-xs text-gray-300">
+                                        {healthPercentage}% - {data.online}/{data.total} Services Online
+                                    </span>
+                                </div>
+                            )}
+                        </div>
 
-                    <div className="flex items-center gap-2 text-gray-400">
-                        {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full md:w-auto items-stretch sm:items-center">
+                            {!isExpanded && (
+                                <div className="flex md:hidden items-center gap-3 px-3 py-2 rounded-xl bg-black/20 border border-white/5 w-full sm:w-auto">
+                                    <div className={`w-2 h-2 rounded-full animate-pulse flex-shrink-0 ${healthStatus === 'green' ? 'bg-green-500' :
+                                        healthStatus === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'
+                                        }`} />
+                                    <span className="text-xs text-gray-300">
+                                        {healthPercentage}% - {data.online}/{data.total} Services Online
+                                    </span>
+                                </div>
+                            )}
+
+                            <div className="flex items-center gap-2 text-gray-400 self-center sm:ml-2">
+                                {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                            </div>
+                        </div>
                     </div>
                 </button>
 
@@ -164,8 +179,8 @@ export function HealthSummary() {
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.3, ease: "easeInOut" }}
                         >
-                            <div className="p-6 pt-0 border-t border-white/5">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 mt-6">
+                            <div className="p-4 sm:p-6 pt-0 border-t border-white/5">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6 mt-4 sm:mt-6">
                                     {/* Online Stats */}
                                     <div className="flex items-center gap-4 p-4 rounded-lg bg-green-500/5 nav-border hover:bg-green-500/10 transition-colors">
                                         <div className="p-2 rounded-full bg-green-500/10">
@@ -217,8 +232,8 @@ export function HealthSummary() {
                                             animate={{ width: `${healthPercentage}%` }}
                                             transition={{ duration: 1, ease: "easeOut" }}
                                             className={`h-full rounded-full ${healthStatus === 'green' ? 'bg-gradient-to-r from-green-400 to-green-500' :
-                                                    healthStatus === 'yellow' ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' :
-                                                        'bg-gradient-to-r from-red-400 to-red-500'
+                                                healthStatus === 'yellow' ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' :
+                                                    'bg-gradient-to-r from-red-400 to-red-500'
                                                 }`}
                                         />
                                     </div>
