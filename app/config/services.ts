@@ -1,4 +1,5 @@
-import { Server, Activity, Database, Shield, Radio, Gauge, Cloud } from "lucide-react";
+import { Server, Activity, Database, Shield, Radio, Gauge, Cloud, Brain } from "lucide-react";
+import { OllamaIcon } from "@/components/icons/OllamaIcon";
 
 export interface Service {
     id: string;
@@ -25,7 +26,7 @@ export const services: Service[] = [
         name: "Open WebUI",
         description: "AI chat interface with local LLM support via Ollama",
         url: process.env.NEXT_PUBLIC_SERVICE_OPENWEBUI_URL || "/unavailable?service=open-webui",
-        icon: Activity,
+        icon: OllamaIcon,
         category: "ai",
         status: "online",
     },

@@ -2,16 +2,16 @@
 
 A secure, premium, and customizable dashboard for your local home server. Built with Next.js 15, React 19, Tailwind CSS 4, and Framer Motion.
 
-![Homelab Dashboard](https://github.com/user-attachments/assets/placeholder)
+![Homelab Dashboard](./public/Dashboard_Dark.png)
 
 ## ✨ Features
 
-- 🚀 **Centralized Hub**: Single entry point for all your local services (Plex, Pi-hole, Portainer, Open WebUI, etc.)
+- 🚀 **Centralized Hub**: Single entry point for all your local services (Jellyfin, Pi-hole, Portainer, Open WebUI, etc.)
 - 🎨 **Premium Design**: "Deep Space" theme with glassmorphism, animated backgrounds, and interactive hover effects
 - ⚡ **Real-time Monitoring**: Live system stats including CPU, RAM, Storage, and Temperature
 - 🔄 **System Update Monitoring**: Track available OS updates and security patches with one-click package listing
 - 🏥 **Service Health Monitoring**: Real-time health checks with response time tracking and color-coded status indicators
-- 🖥️ **Integrated Terminal**: Built-in web terminal with xterm.js for server management
+- ⏰ **Customizable Clock**: Toggle between 12-hour and 24-hour time formats with persistent preferences
 - 🐳 **Docker Integration**: Includes Docker Compose setup for essential homelab services
 - 🛡️ **Resilient Configuration**: Fallback "Service Unavailable" pages for missing configurations
 - 🔒 **Secure Configuration**: Service URLs configured via environment variables
@@ -204,6 +204,17 @@ Edit CSS variables in `app/globals.css`:
 ```
 
 The dashboard uses [Lucide React](https://lucide.dev) for icons - browse their library to find the perfect icon for your services.
+
+## 🎨 Theming System
+
+The dashboard features a robust dual-theme system built for aesthetics and usability:
+
+- **Dark Theme**: The default immersive theme featuring deep violet/blue gradients, neon accents, and glowing glass panels. Optimized for late-night maintenance sessions.
+- **Light Theme**: A polished, professional light theme using soft pastel gradients and high-contrast text for excellent readability in bright environments.
+
+![Homelab Dashboard Light Theme](./public/Dashboard_Light.png)
+- **Glassmorphism**: Both themes utilize advanced backdrop filters, semi-transparent layers, and subtle borders to create a modern, layered depth effect.
+- **Smooth Transitions**: All theme changes are animated with smooth 300ms transitions for background colors, borders, and text.
 
 ## 📊 System Monitoring
 

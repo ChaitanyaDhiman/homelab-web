@@ -29,7 +29,7 @@ export function DashboardGrid() {
                     <motion.h2
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="text-xl font-bold uppercase tracking-wider text-white/50 border-b border-white/5 pb-2 ml-1"
+                        className="text-xl font-bold uppercase tracking-wider text-white/50 pb-2 ml-1"
                     >
                         {category}
                     </motion.h2>

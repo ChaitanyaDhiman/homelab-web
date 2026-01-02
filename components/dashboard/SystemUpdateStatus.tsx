@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { AlertTriangle, CheckCircle, Download, RefreshCw, ShieldAlert, Package, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSettings } from '@/contexts/SettingsContext';
 
 interface UpdateData {
     rebootRequired: boolean;
@@ -19,11 +20,12 @@ export function UpdateStatus() {
     const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState(false);
     const [showPackages, setShowPackages] = useState(false);
+    const { timeFormat, dateFormat, getEffectiveTimeFormat } = useSettings();
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await fetch('/api/updates');
+                const res = await fetch('/api/updates', { cache: 'no-store' });
                 const json = await res.json();
                 if (json.success) {
                     setData(json.data);
@@ -40,6 +42,39 @@ export function UpdateStatus() {
         const interval = setInterval(fetchData, 300000);
         return () => clearInterval(interval);
     }, []);
+
+    const formatLastChecked = (timestamp: string | null) => {
+        if (!timestamp) return 'Checking for updates...';
+
+        const date = new Date(timestamp);
+        const effectiveFormat = getEffectiveTimeFormat();
+
+        let formattedTime: string;
+        let formattedDate: string;
+
+        if (timeFormat === 'auto') {
+            formattedTime = date.toLocaleTimeString();
+        } else {
+            formattedTime = date.toLocaleTimeString('en-US', {
+                hour12: effectiveFormat === '12h',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        if (dateFormat === 'auto') {
+            formattedDate = date.toLocaleDateString();
+        } else {
+            const options: Intl.DateTimeFormatOptions =
+                dateFormat === 'short' ? { month: 'numeric', day: 'numeric', year: '2-digit' } :
+                    dateFormat === 'medium' ? { month: 'short', day: 'numeric', year: 'numeric' } :
+                        { month: 'long', day: 'numeric', year: 'numeric' };
+            formattedDate = date.toLocaleDateString('en-US', options);
+        }
+
+        return `Last checked: ${formattedDate} ${formattedTime}`;
+    };
 
     const getBadgeColor = (securityCount: number, totalCount: number) => {
         if (securityCount > 0) return 'bg-red-500/10 text-red-400 border-red-500/20';
@@ -70,7 +105,7 @@ export function UpdateStatus() {
 
     return (
         <div
-            className="glass-panel p-4 sm:p-6 rounded-2xl mb-8 cursor-pointer transition-colors hover:bg-white/[0.07]"
+            className="glass-panel p-4 sm:p-6 rounded-2xl cursor-pointer transition-colors hover:bg-white/[0.07]"
             onClick={() => setExpanded(!expanded)}
         >
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
@@ -92,9 +127,7 @@ export function UpdateStatus() {
                                     'System Up to Date'}
                         </h2>
                         <div className="text-xs sm:text-sm text-gray-400 truncate">
-                            {data.lastUpdateCheck ?
-                                `Last checked: ${new Date(data.lastUpdateCheck).toLocaleString()}` :
-                                'Checking for updates...'}
+                            {formatLastChecked(data.lastUpdateCheck)}
                         </div>
                     </div>
                 </div>
@@ -142,7 +175,7 @@ export function UpdateStatus() {
                 )}
 
                 {!hasUpdates && !isRebootRequired && (
-                    <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-400 text-sm font-medium">
+                    <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-400 text-sm font-medium transition-all duration-200 hover:bg-green-500/20 hover:scale-105 cursor-default">
                         <CheckCircle className="h-4 w-4" />
                         <span>All systems operational</span>
                     </div>

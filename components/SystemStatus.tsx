@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Cpu, HardDrive, Activity, Thermometer, Clock, Fan } from "lucide-react";
+import { useSettings } from "@/contexts/SettingsContext";
 
 interface SystemStats {
     cpu: number;
@@ -22,13 +23,49 @@ interface SystemStats {
 
 export function SystemStatus() {
     const [time, setTime] = useState<string>("");
+    const [date, setDate] = useState<string>("");
     const [stats, setStats] = useState<SystemStats | null>(null);
+    const { timeFormat, dateFormat, getEffectiveTimeFormat } = useSettings();
 
     useEffect(() => {
         // Only access window/Date on client
-        setTime(new Date().toLocaleTimeString());
+        const updateDateTime = () => {
+            const now = new Date();
+            const effectiveFormat = getEffectiveTimeFormat();
 
-        const updateTime = () => setTime(new Date().toLocaleTimeString());
+            // Format time
+            let formattedTime: string;
+            if (timeFormat === 'auto') {
+                // Use browser's default locale
+                formattedTime = now.toLocaleTimeString();
+            } else {
+                // Use user's preference
+                formattedTime = now.toLocaleTimeString('en-US', {
+                    hour12: effectiveFormat === '12h',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            }
+            setTime(formattedTime);
+
+            // Format date
+            let formattedDate: string;
+            if (dateFormat === 'auto') {
+                // Use browser's default locale
+                formattedDate = now.toLocaleDateString();
+            } else {
+                // Use user's preference
+                const options: Intl.DateTimeFormatOptions =
+                    dateFormat === 'short' ? { month: 'numeric', day: 'numeric', year: '2-digit' } :
+                        dateFormat === 'medium' ? { month: 'short', day: 'numeric', year: 'numeric' } :
+                            { month: 'long', day: 'numeric', year: 'numeric' };
+                formattedDate = now.toLocaleDateString('en-US', options);
+            }
+            setDate(formattedDate);
+        };
+
+        updateDateTime();
 
         const fetchStats = async () => {
             try {
@@ -44,14 +81,14 @@ export function SystemStatus() {
 
         fetchStats(); // Initial fetch
 
-        const timeInterval = setInterval(updateTime, 1000);
+        const timeInterval = setInterval(updateDateTime, 1000);
         const statsInterval = setInterval(fetchStats, 5000);
 
         return () => {
             clearInterval(timeInterval);
             clearInterval(statsInterval);
         };
-    }, []);
+    }, [timeFormat, dateFormat, getEffectiveTimeFormat]);
 
     const formatBytes = (bytes: number) => {
         if (bytes === 0) return '0 B';
@@ -75,16 +112,19 @@ export function SystemStatus() {
     };
 
     return (
-        <div className="flex flex-col md:flex-row gap-6 mb-12">
-            {/* Time Widget */}
+        <div className="flex flex-col md:flex-row gap-6">
+            {/* Date/Time Widget */}
             <div className="glass-panel p-6 rounded-2xl w-full sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)] xl:w-[calc(25%-1.125rem)] flex items-center justify-between">
-                <div>
-                    <h2 className="text-gray-400 text-sm font-medium uppercase tracking-wider">System Time</h2>
-                    <div className="text-4xl font-bold font-mono mt-1 text-white tabular-nums">
+                <div className="flex-1 min-w-0 pr-3">
+                    <h2 className="text-gray-400 text-sm font-medium uppercase tracking-wider">System Date & Time</h2>
+                    <div className="text-2xl sm:text-3xl font-bold font-mono mt-1 text-white tabular-nums whitespace-nowrap overflow-hidden text-ellipsis">
                         {time || "--:--:--"}
                     </div>
+                    <div className="text-sm text-gray-400 mt-1 whitespace-nowrap overflow-hidden text-ellipsis">
+                        {date || "--/--/--"}
+                    </div>
                 </div>
-                <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center flex-shrink-0">
                     <Activity className="w-6 h-6 text-[var(--primary)] animate-pulse" />
                 </div>
             </div>

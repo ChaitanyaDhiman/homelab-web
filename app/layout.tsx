@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
+import { SettingsProvider } from "@/contexts/SettingsContext";
+import { SettingsPanel } from "@/components/SettingsPanel";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -21,10 +23,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${outfit.variable} antialiased min-h-screen flex flex-col`}>
-        <div className="fixed inset-0 z-[-1] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#0f0f1f] to-black opacity-80 pointer-events-none" />
-        <main className="flex-1 relative z-10 w-full max-w-7xl mx-auto p-4 md:p-8">
-          {children}
-        </main>
+        <SettingsProvider>
+          <SettingsPanel />
+          <main className="flex-1 relative z-10 w-full max-w-7xl mx-auto p-4 md:p-8">
+            {children}
+          </main>
+        </SettingsProvider>
       </body>
     </html>
   );

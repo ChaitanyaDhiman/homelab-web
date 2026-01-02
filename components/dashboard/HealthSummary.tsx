@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CheckCircle2, XCircle, AlertCircle, Activity, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertCircle, Activity, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { services } from '@/app/config/services';
+import { useSettings } from '@/contexts/SettingsContext';
 
 interface HealthSummaryData {
     total: number;
@@ -24,6 +25,7 @@ export function HealthSummary() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
+    const { timeFormat, getEffectiveTimeFormat } = useSettings();
 
     useEffect(() => {
         const checkAllServices = async () => {
@@ -77,7 +79,22 @@ export function HealthSummary() {
                 };
 
                 setData(summary);
-                setLastChecked(new Date().toLocaleTimeString());
+
+                // Format timestamp using settings
+                const now = new Date();
+                const effectiveFormat = getEffectiveTimeFormat();
+                let formattedTime: string;
+                if (timeFormat === 'auto') {
+                    formattedTime = now.toLocaleTimeString();
+                } else {
+                    formattedTime = now.toLocaleTimeString('en-US', {
+                        hour12: effectiveFormat === '12h',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                }
+                setLastChecked(formattedTime);
                 setError(false);
             } catch {
                 setError(true);
@@ -89,7 +106,7 @@ export function HealthSummary() {
         checkAllServices();
         const interval = setInterval(checkAllServices, 30000);
         return () => clearInterval(interval);
-    }, []);
+    }, [timeFormat, getEffectiveTimeFormat]);
 
     if (loading) {
         return (
@@ -128,49 +145,47 @@ export function HealthSummary() {
     const healthStatus = getHealthStatus();
 
     return (
-        <div className="w-full space-y-4">
+        <div className="w-full">
             {/* Summary Card */}
-            <div className="rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm overflow-hidden transition-colors hover:bg-white/[0.07]">
-                <button
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="w-full p-4 sm:p-6"
-                >
-                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
-                        <div className="flex items-center gap-3 sm:gap-4 w-full md:w-auto">
-                            <Activity className="w-5 h-5 text-blue-400 flex-shrink-0" />
-                            <h2 className="text-base sm:text-lg font-semibold text-white">Service Health</h2>
-
-                            {!isExpanded && (
-                                <div className="hidden md:flex items-center gap-3 px-3 py-1 rounded-full bg-black/20 border border-white/5">
-                                    <div className={`w-2 h-2 rounded-full animate-pulse ${healthStatus === 'green' ? 'bg-green-500' :
-                                        healthStatus === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'
-                                        }`} />
-                                    <span className="text-xs text-gray-300">
-                                        {healthPercentage}% - {data.online}/{data.total} Services Online
-                                    </span>
-                                </div>
-                            )}
+            <div className="glass-panel p-4 sm:p-6 rounded-2xl cursor-pointer transition-colors hover:bg-white/[0.07]" onClick={() => setIsExpanded(!isExpanded)}>
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
+                    <div className="flex items-center gap-3 sm:gap-4 w-full md:w-auto">
+                        <div className={`p-2.5 sm:p-3 rounded-xl flex-shrink-0 border ${healthStatus === 'green' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                            healthStatus === 'yellow' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
+                                'bg-red-500/10 text-red-400 border-red-500/20'
+                            }`}>
+                            <Activity className="w-5 h-5 sm:w-6 sm:h-6" />
                         </div>
-
-                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full md:w-auto items-stretch sm:items-center">
-                            {!isExpanded && (
-                                <div className="flex md:hidden items-center gap-3 px-3 py-2 rounded-xl bg-black/20 border border-white/5 w-full sm:w-auto">
-                                    <div className={`w-2 h-2 rounded-full animate-pulse flex-shrink-0 ${healthStatus === 'green' ? 'bg-green-500' :
-                                        healthStatus === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'
-                                        }`} />
-                                    <span className="text-xs text-gray-300">
-                                        {healthPercentage}% - {data.online}/{data.total} Services Online
-                                    </span>
-                                </div>
-                            )}
-
-                            <div className="flex items-center gap-2 text-gray-400 self-center sm:ml-2">
-                                {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                            </div>
+                        <div className="flex-1 min-w-0">
+                            <h2 className="text-base sm:text-lg font-semibold text-white truncate">Service Health</h2>
                         </div>
                     </div>
-                </button>
 
+                    {/* Status Display - Right Side */}
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full md:w-auto items-stretch sm:items-center">
+                        <div className={`hidden md:flex items-center gap-2 pl-4 pr-3 py-2 rounded-full text-sm font-medium transition-all duration-200 hover:scale-105 cursor-default ${healthStatus === 'green' ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20' :
+                            healthStatus === 'yellow' ? 'bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20' :
+                                'bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                            }`}>
+                            {healthStatus === 'green' ? (
+                                <CheckCircle className="h-4 w-4" />
+                            ) : (
+                                <div className={`w-2 h-2 rounded-full animate-pulse ${healthStatus === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'
+                                    }`} />
+                            )}
+                            <span>
+                                {healthPercentage}% - {data.online}/{data.total} Services Online
+                            </span>
+                            <div className={`h-4 w-px mx-1 ${healthStatus === 'green' ? 'bg-green-500/20' :
+                                healthStatus === 'yellow' ? 'bg-yellow-500/20' :
+                                    'bg-red-500/20'
+                                }`} />
+                            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Expandable Content */}
                 <AnimatePresence>
                     {isExpanded && (
                         <motion.div
@@ -179,7 +194,7 @@ export function HealthSummary() {
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.3, ease: "easeInOut" }}
                         >
-                            <div className="p-4 sm:p-6 pt-0 border-t border-white/5">
+                            <div className="pt-4 bg-inherit">
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6 mt-4 sm:mt-6">
                                     {/* Online Stats */}
                                     <div className="flex items-center gap-4 p-4 rounded-lg bg-green-500/5 nav-border hover:bg-green-500/10 transition-colors">

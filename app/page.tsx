@@ -13,9 +13,13 @@ export default function Home() {
         <p className="text-gray-400">Welcome back, </p>
       </header>
 
-      <SystemStatus />
+      <div className="mb-8">
+        <SystemStatus />
+      </div>
 
-      <UpdateStatus />
+      <div className="mb-8">
+        <UpdateStatus />
+      </div>
 
       <div className="mb-8">
         <HealthSummary />

@@ -19,115 +19,155 @@ interface UpdateStatus {
     securityPackagesList: string[];
 }
 
-async function getUpdatePackages(): Promise<string[]> {
+interface UpgradeInfo {
+    total: number;
+    security: number;
+    allPackages: string[];
+    securityPackages: string[];
+}
+
+// Helper function to safely execute commands and parse output
+async function safeExec(command: string, fallback: string = ''): Promise<string> {
     try {
-        const { stdout } = await execAsync(
-            'apt list --upgradable 2>/dev/null | grep -v "Listing" | cut -d "/" -f 1'
-        );
-        return stdout.trim().split('\n').filter(Boolean);
+        const { stdout } = await execAsync(command);
+        return stdout.trim();
     } catch {
-        return [];
+        return fallback;
     }
 }
 
-async function getSecurityPackages(): Promise<string[]> {
-    try {
-        const { stdout } = await execAsync(
-            'apt list --upgradable 2>/dev/null | grep -i security | cut -d "/" -f 1'
-        );
-        return stdout.trim().split('\n').filter(Boolean);
-    } catch {
-        return [];
-    }
-}
-
-async function checkRebootRequired(): Promise<{ required: boolean; packages: string[] }> {
-    try {
-        const { stdout: rebootCheck } = await execAsync('[ -f /var/run/reboot-required ] && echo "yes" || echo "no"');
-        const required = rebootCheck.trim() === 'yes';
-
-        if (required) {
-            try {
-                const { stdout: packages } = await execAsync('cat /var/run/reboot-required.pkgs 2>/dev/null || echo ""');
-                return {
-                    required: true,
-                    packages: packages.trim().split('\n').filter(Boolean),
-                };
-            } catch {
-                return { required: true, packages: [] };
-            }
-        }
-
-        return { required: false, packages: [] };
-    } catch {
-        return { required: false, packages: [] };
-    }
-}
-
-async function getUpdateStats(): Promise<{ total: number; security: number }> {
+async function getUpgradeInfo(): Promise<UpgradeInfo> {
     try {
         // Check if running inside Docker
         const isDocker = fs.existsSync('/.dockerenv');
 
-        // Check for available updates - Skip update if in Docker to avoid write errors on read-only mount
         if (!isDocker) {
+            // On host, update the package lists
             await execAsync('apt-get update 2>/dev/null || true');
         }
 
-        const { stdout: updates } = await execAsync('apt list --upgradable 2>/dev/null | grep -v "Listing" | wc -l');
-        const { stdout: security } = await execAsync('apt list --upgradable 2>/dev/null | grep -i security | wc -l');
+        // Single call to apt-get upgrade --dry-run
+        const upgradeOutput = await safeExec(
+            'apt-get upgrade --dry-run 2>/dev/null | grep "^Inst"'
+        );
+
+        if (!upgradeOutput) {
+            return { total: 0, security: 0, allPackages: [], securityPackages: [] };
+        }
+
+        const lines = upgradeOutput.split('\n').filter(Boolean);
+        const allPackages: string[] = [];
+        const securityPackages: string[] = [];
+
+        for (const line of lines) {
+            // Extract package name (second field in "Inst package_name ...")
+            const match = line.match(/^Inst\s+(\S+)/);
+            if (match) {
+                const packageName = match[1];
+                allPackages.push(packageName);
+
+                // Check if it's a security update
+                if (line.toLowerCase().includes('security')) {
+                    securityPackages.push(packageName);
+                }
+            }
+        }
 
         return {
-            total: parseInt(updates.trim()) || 0,
-            security: parseInt(security.trim()) || 0,
+            total: allPackages.length,
+            security: securityPackages.length,
+            allPackages,
+            securityPackages,
         };
     } catch {
-        return { total: 0, security: 0 };
+        return { total: 0, security: 0, allPackages: [], securityPackages: [] };
+    }
+}
+
+async function checkRebootRequired(): Promise<{ required: boolean; packages: string[] }> {
+    const rebootFile = '/var/run/reboot-required';
+    const rebootPkgsFile = '/var/run/reboot-required.pkgs';
+
+    // Check if reboot-required exists and is a file (not a directory)
+    try {
+        const stat = fs.statSync(rebootFile);
+        if (!stat.isFile()) {
+            return { required: false, packages: [] };
+        }
+    } catch {
+        // File doesn't exist
+        return { required: false, packages: [] };
+    }
+
+    // Reboot is required, try to get the package list
+    try {
+        const packagesContent = await safeExec(`cat ${rebootPkgsFile} 2>/dev/null`);
+        return {
+            required: true,
+            packages: packagesContent.split('\n').filter(Boolean),
+        };
+    } catch {
+        return { required: true, packages: [] };
     }
 }
 
 async function getLastUpdateLog(): Promise<string[]> {
-    try {
-        const { stdout } = await execAsync(
-            'tail -n 20 /var/log/unattended-upgrades/unattended-upgrades.log 2>/dev/null | grep "INFO" || echo "No logs available"'
-        );
-        return stdout.trim().split('\n').filter(Boolean);
-    } catch {
-        return ['Update logs not available'];
+    const logs: string[] = [];
+
+    const [aptHistory, unattendedLogs, dpkgLogs] = await Promise.all([
+        safeExec('grep -h "Commandline:" /var/log/apt/history.log 2>/dev/null | tail -n 5'),
+        safeExec('tail -n 10 /var/log/unattended-upgrades/unattended-upgrades.log 2>/dev/null | grep -E "INFO|WARNING|ERROR"'),
+        safeExec('grep -E "status (installed|upgraded|removed)" /var/log/dpkg.log 2>/dev/null | tail -n 5'),
+    ]);
+
+    if (aptHistory) {
+        logs.push('=== System APT Operations ===');
+        logs.push(...aptHistory.split('\n').filter(Boolean));
     }
+
+    if (unattendedLogs) {
+        if (logs.length > 0) logs.push('');
+        logs.push('=== Unattended Upgrades ===');
+        logs.push(...unattendedLogs.split('\n').filter(Boolean));
+    }
+
+    if (dpkgLogs) {
+        if (logs.length > 0) logs.push('');
+        logs.push('=== Recent Package Operations ===');
+        logs.push(...dpkgLogs.split('\n').filter(Boolean));
+    }
+
+    return logs.length > 0 ? logs : ['No update logs available'];
 }
 
 async function getLastUpdateTime(): Promise<string | null> {
-    try {
-        const { stdout } = await execAsync(
-            'stat -c %y /var/log/unattended-upgrades/unattended-upgrades.log 2>/dev/null || echo ""'
-        );
-        return stdout.trim() || null;
-    } catch {
-        return null;
-    }
+    // Check multiple possible timestamps for when apt update was last run
+    const timestamp = await safeExec(
+        'stat -c %y /var/lib/apt/periodic/update-success-stamp 2>/dev/null || ' +
+        'stat -c %y /var/cache/apt/pkgcache.bin 2>/dev/null || ' +
+        'stat -c %y /var/lib/apt/lists 2>/dev/null'
+    );
+    return timestamp || null;
 }
 
 export async function GET() {
     try {
-        const [rebootStatus, updateStats, lastLog, lastUpdate, updatePackages, securityPackages] = await Promise.all([
+        const [rebootStatus, upgradeInfo, lastLog, lastUpdate] = await Promise.all([
             checkRebootRequired(),
-            getUpdateStats(),
+            getUpgradeInfo(),
             getLastUpdateLog(),
             getLastUpdateTime(),
-            getUpdatePackages(),
-            getSecurityPackages(),
         ]);
 
         const response: UpdateStatus = {
             rebootRequired: rebootStatus.required,
             rebootReasons: rebootStatus.packages,
             lastUpdateCheck: lastUpdate,
-            updatesAvailable: updateStats.total,
-            securityUpdates: updateStats.security,
+            updatesAvailable: upgradeInfo.total,
+            securityUpdates: upgradeInfo.security,
             lastUpdateLog: lastLog,
-            updatePackages: updatePackages,
-            securityPackagesList: securityPackages,
+            updatePackages: upgradeInfo.allPackages,
+            securityPackagesList: upgradeInfo.securityPackages,
         };
 
         return NextResponse.json({
