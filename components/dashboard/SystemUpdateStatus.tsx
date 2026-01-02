@@ -46,7 +46,10 @@ export function UpdateStatus() {
     const formatLastChecked = (timestamp: string | null) => {
         if (!timestamp) return 'Checking for updates...';
 
-        const date = new Date(timestamp);
+        // Safari/iOS fixes: ensure ISO format or standard separators
+        const safeDate = new Date(timestamp.replace(/-/g, '/'));
+        const date = isNaN(safeDate.getTime()) ? new Date(timestamp) : safeDate;
+
         const effectiveFormat = getEffectiveTimeFormat();
 
         let formattedTime: string;
@@ -165,104 +168,113 @@ export function UpdateStatus() {
                                         )}
                                     </div>
                                 </div>
+
+                                {/* Desktop Integrated Chevron */}
+                                <div className="hidden md:block h-8 w-px mx-2 bg-current opacity-20" />
+                                <ChevronDown className={`hidden md:block w-4 h-4 transition-transform duration-200 flex-shrink-0 ${expanded ? 'rotate-180' : ''}`} />
                             </div>
                         )}
 
-                        <div className="text-gray-500 self-center sm:ml-2">
+                        <div className="text-gray-500 self-center sm:ml-2 md:hidden">
                             {expanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                         </div>
                     </div>
-                )}
+                )
+                }
 
-                {!hasUpdates && !isRebootRequired && (
-                    <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-400 text-sm font-medium transition-all duration-200 hover:bg-green-500/20 hover:scale-105 cursor-default">
-                        <CheckCircle className="h-4 w-4" />
-                        <span>All systems operational</span>
-                    </div>
-                )}
-            </div>
+                {
+                    !hasUpdates && !isRebootRequired && (
+                        <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-400 text-sm font-medium transition-all duration-200 hover:bg-green-500/20 hover:scale-105 cursor-default">
+                            <CheckCircle className="h-4 w-4" />
+                            <span>All systems operational</span>
+                        </div>
+                    )
+                }
+            </div >
 
             {/* Expanded Details */}
             <AnimatePresence>
-                {expanded && hasUpdates && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                    >
-                        <div className="mt-4 pt-4 border-t border-white/5 space-y-2 pl-0 sm:pl-2">
-                            <div className="text-sm text-gray-400 flex items-center gap-2">
-                                <div className={`w-2 h-2 rounded-full ${hasSecurityUpdates ? 'bg-red-400' : 'bg-blue-400'}`} />
-                                {data.securityUpdates} security updates
-                            </div>
-                            <div className="text-sm text-gray-400 flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-gray-500" />
-                                {data.updatesAvailable - data.securityUpdates} regular updates
-                            </div>
-                            <div className="pt-2">
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setShowPackages(!showPackages);
-                                    }}
-                                    className="text-xs sm:text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors"
-                                >
-                                    View all packages
-                                    <ChevronDown className={`h-4 w-4 transition-transform ${showPackages ? 'rotate-180' : ''}`} />
-                                </button>
-                            </div>
+                {
+                    expanded && hasUpdates && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                        >
+                            <div className="mt-4 pt-4 border-t border-white/5 space-y-2 pl-0 sm:pl-2">
+                                <div className="text-sm text-gray-400 flex items-center gap-2">
+                                    <div className={`w-2 h-2 rounded-full ${hasSecurityUpdates ? 'bg-red-400' : 'bg-blue-400'}`} />
+                                    {data.securityUpdates} security updates
+                                </div>
+                                <div className="text-sm text-gray-400 flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-gray-500" />
+                                    {data.updatesAvailable - data.securityUpdates} regular updates
+                                </div>
+                                <div className="pt-2">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowPackages(!showPackages);
+                                        }}
+                                        className="text-xs sm:text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors"
+                                    >
+                                        View all packages
+                                        <ChevronDown className={`h-4 w-4 transition-transform ${showPackages ? 'rotate-180' : ''}`} />
+                                    </button>
+                                </div>
 
-                            {/* Package List */}
-                            {showPackages && data.updatePackages && (
-                                <div className="mt-3 space-y-2 max-h-48 sm:max-h-64 overflow-y-auto">
-                                    {/* Regular Updates */}
-                                    {data.updatePackages.filter(pkg => !data.securityPackagesList?.includes(pkg)).length > 0 && (
-                                        <>
-                                            <div className="text-xs font-semibold text-gray-400 mb-2 sticky top-0 bg-[#0a0a0f] py-1">
-                                                Regular Updates ({data.updatesAvailable - data.securityUpdates})
-                                            </div>
-                                            <div className="space-y-1">
-                                                {data.updatePackages
-                                                    .filter(pkg => !data.securityPackagesList?.includes(pkg))
-                                                    .map((pkg, idx) => (
+                                {/* Package List */}
+                                {showPackages && data.updatePackages && (
+                                    <div className="mt-3 space-y-2 max-h-48 sm:max-h-64 overflow-y-auto">
+                                        {/* Regular Updates */}
+                                        {data.updatePackages.filter(pkg => !data.securityPackagesList?.includes(pkg)).length > 0 && (
+                                            <>
+                                                <div className="text-xs font-semibold text-gray-400 mb-2 sticky top-0 bg-[#0a0a0f] py-1">
+                                                    Regular Updates ({data.updatesAvailable - data.securityUpdates})
+                                                </div>
+                                                <div className="space-y-1">
+                                                    {data.updatePackages
+                                                        .filter(pkg => !data.securityPackagesList?.includes(pkg))
+                                                        .map((pkg, idx) => (
+                                                            <div
+                                                                key={idx}
+                                                                className="text-xs text-gray-300 bg-white/5 px-2 py-1 rounded"
+                                                            >
+                                                                {pkg}
+                                                            </div>
+                                                        ))}
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {/* Security Updates */}
+                                        {data.securityUpdates > 0 && data.securityPackagesList && (
+                                            <>
+                                                <div className="text-xs font-semibold text-red-400 mt-3 mb-2 sticky top-0 bg-[#0a0a0f] py-1">
+                                                    Security Updates ({data.securityUpdates})
+                                                </div>
+                                                <div className="space-y-1">
+                                                    {data.securityPackagesList.map((pkg, idx) => (
                                                         <div
                                                             key={idx}
-                                                            className="text-xs text-gray-300 bg-white/5 px-2 py-1 rounded"
+                                                            className="text-xs text-red-300 bg-red-500/10 px-2 py-1 rounded border border-red-500/20 flex items-center gap-2"
                                                         >
+                                                            <AlertTriangle className="h-3 w-3" />
                                                             {pkg}
                                                         </div>
                                                     ))}
-                                            </div>
-                                        </>
-                                    )}
-
-                                    {/* Security Updates */}
-                                    {data.securityUpdates > 0 && data.securityPackagesList && (
-                                        <>
-                                            <div className="text-xs font-semibold text-red-400 mt-3 mb-2 sticky top-0 bg-[#0a0a0f] py-1">
-                                                Security Updates ({data.securityUpdates})
-                                            </div>
-                                            <div className="space-y-1">
-                                                {data.securityPackagesList.map((pkg, idx) => (
-                                                    <div
-                                                        key={idx}
-                                                        className="text-xs text-red-300 bg-red-500/10 px-2 py-1 rounded border border-red-500/20 flex items-center gap-2"
-                                                    >
-                                                        <AlertTriangle className="h-3 w-3" />
-                                                        {pkg}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    )
+                }
+            </AnimatePresence >
+        </div >
     );
 }

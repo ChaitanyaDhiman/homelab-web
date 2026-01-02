@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Cpu, HardDrive, Activity, Thermometer, Clock, Fan } from "lucide-react";
+import { useSystem } from "@/contexts/SystemContext";
 import { useSettings } from "@/contexts/SettingsContext";
 
 interface SystemStats {
@@ -22,9 +23,9 @@ interface SystemStats {
 }
 
 export function SystemStatus() {
+    const { stats, loading, error } = useSystem();
     const [time, setTime] = useState<string>("");
     const [date, setDate] = useState<string>("");
-    const [stats, setStats] = useState<SystemStats | null>(null);
     const { timeFormat, dateFormat, getEffectiveTimeFormat } = useSettings();
 
     useEffect(() => {
@@ -66,27 +67,10 @@ export function SystemStatus() {
         };
 
         updateDateTime();
-
-        const fetchStats = async () => {
-            try {
-                const res = await fetch('/api/system');
-                if (res.ok) {
-                    const data = await res.json();
-                    setStats(data);
-                }
-            } catch (error) {
-                console.error("Failed to fetch stats", error);
-            }
-        };
-
-        fetchStats(); // Initial fetch
-
         const timeInterval = setInterval(updateDateTime, 1000);
-        const statsInterval = setInterval(fetchStats, 5000);
 
         return () => {
             clearInterval(timeInterval);
-            clearInterval(statsInterval);
         };
     }, [timeFormat, dateFormat, getEffectiveTimeFormat]);
 

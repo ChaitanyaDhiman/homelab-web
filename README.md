@@ -6,15 +6,15 @@ A secure, premium, and customizable dashboard for your local home server. Built 
 
 ## ✨ Features
 
-- 🚀 **Centralized Hub**: Single entry point for all your local services (Jellyfin, Pi-hole, Portainer, Open WebUI, etc.)
+- 🚀 **Centralized Hub**: Single entry point for all your local services with optimized state management via React Context
 - 🎨 **Premium Design**: "Deep Space" theme with glassmorphism, animated backgrounds, and interactive hover effects
-- ⚡ **Real-time Monitoring**: Live system stats including CPU, RAM, Storage, and Temperature
+- ⚡ **Optimized Monitoring**: High-performance system stats and health checks using a centralized polling architecture to minimize network overhead
 - 🔄 **System Update Monitoring**: Track available OS updates and security patches with one-click package listing
-- 🏥 **Service Health Monitoring**: Real-time health checks with response time tracking and color-coded status indicators
+- 🏥 **Resilient Health Checks**: Real-time monitoring with "Internal-to-Public" fallback logic and tiered timeouts for local development support
 - ⏰ **Customizable Clock**: Toggle between 12-hour and 24-hour time formats with persistent preferences
 - 🐳 **Docker Integration**: Includes Docker Compose setup for essential homelab services
-- 🛡️ **Resilient Configuration**: Fallback "Service Unavailable" pages for missing configurations
-- 🔒 **Secure Configuration**: Service URLs configured via environment variables
+- 🛡️ **Connectivity Transparency**: Visual markers (Globe icon) indicating when services are using fallback public routes
+- 🔒 **Secure Configuration**: Service URLs configured via environment variables with SSL verification bypass for internal Docker traffic
 - 📱 **Responsive Design**: Optimized for desktop, tablet, and mobile devices
 - 🛠️ **Easy Customization**: Simple configuration file and component architecture
 
@@ -158,6 +158,7 @@ homelab-web/
 │   ├── dashboard/          # Dashboard widgets (HealthSummary, SystemUpdateStatus)
 │   ├── terminal/           # Terminal components
 │   └── ui/                 # Reusable UI elements
+├── contexts/                 # Centralized state management (Health, System, Settings)
 ├── docker-services/        # Docker services configuration
 ├── start-homelab.sh        # Deployment helper script
 ├── docker-compose.yml      # Dashboard compose file
@@ -218,15 +219,14 @@ The dashboard features a robust dual-theme system built for aesthetics and usabi
 
 ## 📊 System Monitoring
 
-The dashboard includes real-time system monitoring:
+The dashboard includes real-time system monitoring using a high-performance polling architecture:
 
-- **CPU**: Current usage percentage and load average
-- **RAM**: Active memory usage with total available
-- **Temperature**: Average temperature of all CPU cores
-- **Storage**: Usage of the root `/` partition
-- **Uptime**: System uptime in human-readable format
-
-System stats are fetched from the `/api/system` endpoint using the `systeminformation` library.
+- **Centralized Polling**: Single `/api/system` call every 5 seconds shared across all components via `SystemContext`.
+- **CPU**: Current usage percentage and load average.
+- **RAM**: Active memory usage with total available.
+- **Temperature**: Average temperature of all CPU cores.
+- **Storage**: Usage of the root `/` partition.
+- **Uptime**: System uptime in human-readable format.
 
 ## 🔄 System Update Monitoring
 
@@ -248,13 +248,14 @@ The dashboard includes comprehensive real-time health monitoring for all configu
 
 ### Features
 
-- **Real-time Health Checks**: Automatic health checks every 30 seconds
-- **Response Time Tracking**: Color-coded response times for performance insights
+- **Centralized Health Check**: Single `/api/health` fetch every 30 seconds managed by `HealthContext`.
+- **Intelligent Fallback**: Attempts internal Docker networking first, falling back to public URLs with tiered timeouts (2s internal / 3s public) for maximum reliability in both dev and production.
+- **Response Time Tracking**: Color-coded response times for performance insights:
   - 🟢 Green: < 200ms (Excellent)
   - 🟡 Yellow: 200-500ms (Good)
   - 🟠 Orange: 500-2000ms (Slow)
   - 🔴 Red: > 2000ms (Degraded)
-- **Status Indicators**: Visual status badges on each service card
+- **Status Markers**: Visual indicators including a 🌐 marker for fallback connections and status bubbles on each service card.
 - **Health Summary Widget**: Expandable overview showing:
   - Overall health percentage
   - Count of online, degraded, and offline services

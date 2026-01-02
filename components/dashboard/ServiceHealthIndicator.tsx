@@ -1,76 +1,41 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { services } from '@/app/config/services';
-import { AlertCircle } from 'lucide-react';
+import { useHealth } from '@/contexts/HealthContext';
+import { AlertCircle, Globe } from 'lucide-react';
 
 interface ServiceHealth {
     status: 'online' | 'offline' | 'degraded';
     responseTime?: number;
+    fallback?: boolean;
     error?: string;
 }
 
 export function ServiceHealthIndicator({ serviceId }: { serviceId: string }) {
-    const [health, setHealth] = useState<ServiceHealth | null>(null);
-    const [loading, setLoading] = useState(true);
+    const { servicesHealth, loading } = useHealth();
 
-    useEffect(() => {
-        const service = services.find(s => s.id === serviceId);
-        if (!service || !service.url || service.url.startsWith('/')) {
-            setHealth({ status: 'offline', error: 'Service URL not configured' });
-            setLoading(false);
-            return;
-        }
+    const serviceData = servicesHealth[serviceId];
 
-        const checkHealth = async () => {
-            const startTime = performance.now();
+    if (loading && !serviceData) {
+        return (
+            <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-gray-500/50 animate-pulse" />
+            </div>
+        );
+    }
 
-            try {
-                // Use no-cors mode for cross-origin requests
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000);
+    if (!serviceData) {
+        return (
+            <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-gray-500" title="Unknown Status" />
+            </div>
+        );
+    }
 
-                await fetch(service.url, {
-                    method: 'HEAD',
-                    mode: 'no-cors', // Allows cross-origin without CORS headers
-                    cache: 'no-store',
-                    signal: controller.signal,
-                });
-
-                clearTimeout(timeoutId);
-                const endTime = performance.now();
-                const responseTime = Math.round(endTime - startTime);
-                const isDegraded = responseTime > 2000;
-
-                setHealth({
-                    status: isDegraded ? 'degraded' : 'online',
-                    responseTime,
-                });
-            } catch (error) {
-                const endTime = performance.now();
-                const responseTime = Math.round(endTime - startTime);
-
-                // If we got a quick response, it might be CORS-blocked but service is up
-                if (responseTime < 1000) {
-                    setHealth({
-                        status: 'online',
-                        responseTime,
-                    });
-                } else {
-                    setHealth({
-                        status: 'offline',
-                        error: error instanceof Error ? error.message : 'Connection failed',
-                    });
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        checkHealth();
-        const interval = setInterval(checkHealth, 30000);
-        return () => clearInterval(interval);
-    }, [serviceId]);
+    const health: ServiceHealth = {
+        status: serviceData.status,
+        responseTime: serviceData.responseTime,
+        fallback: serviceData.fallback,
+    };
 
     if (loading) {
         return (
@@ -116,9 +81,16 @@ export function ServiceHealthIndicator({ serviceId }: { serviceId: string }) {
 
             {/* MS Value */}
             {health.status !== 'offline' && health.responseTime !== undefined && (
-                <span className={`text-xs font-mono ${getResponseTimeColor(health.responseTime)}`}>
-                    {health.responseTime}ms
-                </span>
+                <div className="flex items-center gap-1">
+                    <span className={`text-xs font-mono min-w-[45px] text-right ${getResponseTimeColor(health.responseTime)}`}>
+                        {health.responseTime}ms
+                    </span>
+                    {health.fallback && (
+                        <span title="Using Fallback URL">
+                            <Globe className="w-3 h-3 text-blue-400/60" />
+                        </span>
+                    )}
+                </div>
             )}
 
             {health.error && (

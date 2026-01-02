@@ -5,6 +5,7 @@ import { CheckCircle2, XCircle, AlertCircle, Activity, ChevronDown, ChevronUp, C
 import { motion, AnimatePresence } from 'framer-motion';
 import { services } from '@/app/config/services';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useHealth } from '@/contexts/HealthContext';
 
 interface HealthSummaryData {
     total: number;
@@ -13,100 +14,49 @@ interface HealthSummaryData {
     offline: number;
 }
 
-interface ServiceHealth {
-    id: string;
-    status: 'online' | 'offline' | 'degraded';
-    responseTime?: number;
-}
-
 export function HealthSummary() {
-    const [data, setData] = useState<HealthSummaryData | null>(null);
-    const [lastChecked, setLastChecked] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
+    const { servicesHealth, loading, error, lastChecked } = useHealth();
     const [isExpanded, setIsExpanded] = useState(false);
     const { timeFormat, getEffectiveTimeFormat } = useSettings();
 
-    useEffect(() => {
-        const checkAllServices = async () => {
-            try {
-                const results: ServiceHealth[] = await Promise.all(
-                    services.map(async (service) => {
-                        if (!service.url || service.url.startsWith('/')) {
-                            return { id: service.id, status: 'offline' as const };
-                        }
-
-                        const startTime = performance.now();
-                        try {
-                            const controller = new AbortController();
-                            const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-                            await fetch(service.url, {
-                                method: 'HEAD',
-                                mode: 'no-cors',
-                                cache: 'no-store',
-                                signal: controller.signal,
-                            });
-
-                            clearTimeout(timeoutId);
-                            const endTime = performance.now();
-                            const responseTime = Math.round(endTime - startTime);
-                            const isDegraded = responseTime > 2000;
-
-                            return {
-                                id: service.id,
-                                status: isDegraded ? ('degraded' as const) : ('online' as const),
-                                responseTime,
-                            };
-                        } catch {
-                            const endTime = performance.now();
-                            const responseTime = Math.round(endTime - startTime);
-
-                            // Quick response might be CORS-blocked but service is up
-                            if (responseTime < 1000) {
-                                return { id: service.id, status: 'online' as const, responseTime };
-                            }
-                            return { id: service.id, status: 'offline' as const };
-                        }
-                    })
-                );
-
-                const summary: HealthSummaryData = {
-                    total: results.length,
-                    online: results.filter(s => s.status === 'online').length,
-                    degraded: results.filter(s => s.status === 'degraded').length,
-                    offline: results.filter(s => s.status === 'offline').length,
+    // Map API results back to a format suitable for the summary
+    const summary: HealthSummaryData | null = servicesHealth ? (() => {
+        const results = services.map(service => {
+            const statusData = servicesHealth[service.id];
+            if (statusData) {
+                return {
+                    id: service.id,
+                    status: statusData.status,
+                    responseTime: statusData.responseTime
                 };
-
-                setData(summary);
-
-                // Format timestamp using settings
-                const now = new Date();
-                const effectiveFormat = getEffectiveTimeFormat();
-                let formattedTime: string;
-                if (timeFormat === 'auto') {
-                    formattedTime = now.toLocaleTimeString();
-                } else {
-                    formattedTime = now.toLocaleTimeString('en-US', {
-                        hour12: effectiveFormat === '12h',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit'
-                    });
-                }
-                setLastChecked(formattedTime);
-                setError(false);
-            } catch {
-                setError(true);
-            } finally {
-                setLoading(false);
             }
-        };
+            return { id: service.id, status: 'offline', responseTime: 0 };
+        });
 
-        checkAllServices();
-        const interval = setInterval(checkAllServices, 30000);
-        return () => clearInterval(interval);
-    }, [timeFormat, getEffectiveTimeFormat]);
+        return {
+            total: results.length,
+            online: results.filter(s => s.status === 'online').length,
+            degraded: results.filter(s => s.status === 'degraded').length,
+            offline: results.filter(s => s.status === 'offline').length,
+        };
+    })() : null;
+
+    const data = summary;
+
+    // Format timestamp for display
+    const formattedLastChecked = lastChecked ? (() => {
+        const now = lastChecked;
+        const effectiveFormat = getEffectiveTimeFormat();
+        if (timeFormat === 'auto') {
+            return now.toLocaleTimeString();
+        }
+        return now.toLocaleTimeString('en-US', {
+            hour12: effectiveFormat === '12h',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    })() : null;
 
     if (loading) {
         return (
@@ -182,6 +132,10 @@ export function HealthSummary() {
                                 }`} />
                             <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                         </div>
+
+                        <div className="text-gray-500 self-center sm:ml-2 md:hidden">
+                            {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                        </div>
                     </div>
                 </div>
 
@@ -252,9 +206,9 @@ export function HealthSummary() {
                                                 }`}
                                         />
                                     </div>
-                                    {lastChecked && (
+                                    {formattedLastChecked && (
                                         <div className="text-right pt-2">
-                                            <span className="text-xs text-gray-500">Last checked: {lastChecked}</span>
+                                            <span className="text-xs text-gray-500">Last checked: {formattedLastChecked}</span>
                                         </div>
                                     )}
                                 </div>
