@@ -35,6 +35,8 @@ services:
       - PGID=1000  # Run: id -g to get your group ID
       - TZ=Asia/Kolkata
       - JELLYFIN_PublishedServerUrl=https://jellyfin.homes
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
 networks:
   proxy_net:

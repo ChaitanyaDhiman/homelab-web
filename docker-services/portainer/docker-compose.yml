@@ -29,6 +29,8 @@ services:
       - /srv/docker-data/portainer:/data
     networks:
       - proxy_net
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
 networks:
   proxy_net:

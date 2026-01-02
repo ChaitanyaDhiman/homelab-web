@@ -20,6 +20,8 @@ services:
       - /srv/docker-data/npm/letsencrypt:/etc/letsencrypt
     networks:
       - proxy_net
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
 networks:
   proxy_net:

@@ -1,4 +1,4 @@
-import { Server, Activity, Database, Shield, Radio, Terminal, Cloud } from "lucide-react";
+import { Server, Activity, Database, Shield, Radio, Gauge, Cloud } from "lucide-react";
 
 export interface Service {
     id: string;
@@ -48,11 +48,11 @@ export const services: Service[] = [
         status: "online",
     },
     {
-        id: "terminal",
-        name: "Terminal",
-        description: "Web Terminal",
-        url: process.env.NEXT_PUBLIC_SERVICE_TERMINAL_URL || "/unavailable?service=terminal",
-        icon: Terminal,
+        id: "cockpit",
+        name: "Cockpit",
+        description: "Cockpit is a web-based graphical interface for servers",
+        url: process.env.NEXT_PUBLIC_SERVICE_COCKPIT_URL || "/unavailable?service=cockpit",
+        icon: Gauge,
         category: "system",
         status: "online"
     },

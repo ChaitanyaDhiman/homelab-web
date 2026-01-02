@@ -27,6 +27,8 @@ services:
       - NET_ADMIN
     networks:
       - proxy_net
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
 networks:
   proxy_net:

@@ -19,6 +19,8 @@ services:
       - /srv/docker-data/openwebui:/app/backend/data
     networks:
       - proxy_net
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
 networks:
   proxy_net:

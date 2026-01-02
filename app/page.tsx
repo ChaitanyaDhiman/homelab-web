@@ -1,6 +1,7 @@
 import { DashboardGrid } from "@/components/DashboardGrid";
 import { SystemStatus } from "@/components/SystemStatus";
 import { HealthSummary } from "@/components/dashboard/HealthSummary";
+import { UpdateStatus } from '@/components/dashboard/SystemUpdateStatus';
 
 export default function Home() {
   return (
@@ -13,6 +14,8 @@ export default function Home() {
       </header>
 
       <SystemStatus />
+
+      <UpdateStatus />
 
       <div className="mb-8">
         <HealthSummary />

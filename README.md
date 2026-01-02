@@ -9,6 +9,7 @@ A secure, premium, and customizable dashboard for your local home server. Built 
 - 🚀 **Centralized Hub**: Single entry point for all your local services (Plex, Pi-hole, Portainer, Open WebUI, etc.)
 - 🎨 **Premium Design**: "Deep Space" theme with glassmorphism, animated backgrounds, and interactive hover effects
 - ⚡ **Real-time Monitoring**: Live system stats including CPU, RAM, Storage, and Temperature
+- 🔄 **System Update Monitoring**: Track available OS updates and security patches with one-click package listing
 - 🏥 **Service Health Monitoring**: Real-time health checks with response time tracking and color-coded status indicators
 - 🖥️ **Integrated Terminal**: Built-in web terminal with xterm.js for server management
 - 🐳 **Docker Integration**: Includes Docker Compose setup for essential homelab services
@@ -31,6 +32,7 @@ This project includes two main components:
 - **Open WebUI** - Web interface for AI/LLM interactions
 - **Portainer** - Docker container management UI
 - **Plex Media Server** - Media streaming server
+- **Watchtower** - Automated Docker container updates (scheduled weekly on Sundays at 3 AM)
 
 See the [docker-services README](./docker-services/README.md) for detailed documentation on these services.
 
@@ -149,28 +151,16 @@ For secure access with HTTPS:
 ```
 homelab-web/
 ├── app/                      # Next.js app directory
-│   ├── api/                  # API routes
-│   │   ├── health/          # Service health check endpoint
-│   │   ├── system/          # System stats endpoint
-│   │   └── terminal/        # Terminal WebSocket handler
-│   ├── config/              # Configuration files
-│   │   └── services.ts      # Service definitions
-│   ├── unavailable/         # Service unavailable page
-│   ├── globals.css          # Global styles
-│   ├── layout.tsx           # Root layout
-│   └── page.tsx             # Home page
+│   ├── api/                  # API routes (health, system, updates, terminal)
+│   ├── config/              # Configuration files (services.ts)
+│   └── globals.css          # Global styles & theme
 ├── components/              # React components
-│   ├── dashboard/          # Dashboard-specific components
-│   ├── terminal/           # Terminal component
-│   └── ui/                 # Reusable UI components
+│   ├── dashboard/          # Dashboard widgets (HealthSummary, SystemUpdateStatus)
+│   ├── terminal/           # Terminal components
+│   └── ui/                 # Reusable UI elements
 ├── docker-services/        # Docker services configuration
-│   ├── docker-compose.yml  # Services compose file
-│   └── README.md           # Services documentation
-├── public/                 # Static assets
-├── docker-compose.yml      # Dashboard compose file
-├── Dockerfile              # Dashboard container image
 ├── start-homelab.sh        # Deployment helper script
-├── .env.example            # Environment variables template
+├── docker-compose.yml      # Dashboard compose file
 └── README.md               # This file
 ```
 
@@ -207,8 +197,8 @@ Edit CSS variables in `app/globals.css`:
 
 ```css
 :root {
-  --primary: #your-color;
-  --secondary: #your-color;
+  --primary: #00f0ff;
+  --secondary: #bd00ff;
   /* ... other variables */
 }
 ```
@@ -221,11 +211,25 @@ The dashboard includes real-time system monitoring:
 
 - **CPU**: Current usage percentage and load average
 - **RAM**: Active memory usage with total available
-- **Temperature**: Average temperature of all CPU cores (falls back to package temp if unavailable)
+- **Temperature**: Average temperature of all CPU cores
 - **Storage**: Usage of the root `/` partition
 - **Uptime**: System uptime in human-readable format
 
 System stats are fetched from the `/api/system` endpoint using the `systeminformation` library.
+
+## 🔄 System Update Monitoring
+
+New in v1.1, the dashboard monitors host system updates managed by **Unattended Upgrades (APT)**:
+
+- **Automated Management**: Leverages system-level `unattended-upgrades` to keep the host OS patched and secure.
+- **Urgency Awareness**: Badges change color based on urgency:
+  - 🔴 **Critical**: Security updates available
+  - 🟡 **Warning**: 5+ regular updates pending
+  - 🔵 **Normal**: Pending minor updates
+- **Reboot Detection**: Clear visual alerts when a kernel or system reboot is required
+- **Deep Dive**: Click to expand for a detailed list of regular vs. security packages.
+- **Live Background Polish**: Download icon pulses when new updates are ready.
+- **Dashboard API**: Integrates via a dedicated `/api/updates` endpoint that surfaces real-time update metadata.
 
 ## 🏥 Service Health Monitoring
 
@@ -244,35 +248,6 @@ The dashboard includes comprehensive real-time health monitoring for all configu
   - Overall health percentage
   - Count of online, degraded, and offline services
   - Animated progress bar with color-coded health states
-  - Last checked timestamp
-- **Smart Status Detection**: Handles authentication-required services (401/403) and self-signed certificates
-
-### Health API Endpoint
-
-The `/api/health` endpoint provides comprehensive health data:
-
-```json
-{
-  "services": [
-    {
-      "id": "jellyfin",
-      "name": "Jellyfin",
-      "status": "online",
-      "responseTime": 145,
-      "statusCode": 200,
-      "lastChecked": "2025-12-21T12:30:00.000Z"
-    }
-  ],
-  "summary": {
-    "total": 6,
-    "online": 5,
-    "degraded": 1,
-    "offline": 0
-  },
-  "timestamp": "2025-12-21T12:30:00.000Z"
-}
-```
-
 
 ## 🖥️ Web Terminal
 
@@ -296,8 +271,8 @@ npm run lint     # Run ESLint
 
 ### Tech Stack
 
-- **Framework**: Next.js 16 (App Router)
-- **React**: 19.2
+- **Framework**: Next.js 15 (App Router)
+- **React**: 19
 - **Styling**: Tailwind CSS 4
 - **Animations**: Framer Motion 12
 - **Icons**: Lucide React
@@ -345,13 +320,6 @@ docker-compose up -d --build --force-recreate
 - Check WebSocket connection in browser DevTools
 - Ensure node-pty is properly installed
 - Verify terminal permissions on the host system
-
-### Health Monitoring Not Working
-
-- Check `/api/health` endpoint in browser DevTools
-- Verify service URLs are correctly configured in `.env.local`
-- For self-signed certificate errors, the API automatically handles them
-- Check browser console for any CORS or network errors
 
 ## 📚 Additional Resources
 
