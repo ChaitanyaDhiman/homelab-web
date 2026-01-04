@@ -22,6 +22,15 @@ export const services: Service[] = [
         status: "online",
     },
     {
+        id: "plex",
+        name: "Plex",
+        description: "Media streaming server for movies, TV shows, and music",
+        url: process.env.NEXT_PUBLIC_SERVICE_PLEX_URL || "/unavailable?service=plex",
+        icon: Server,
+        category: "media",
+        status: "online",
+    },
+    {
         id: "open-webui",
         name: "Open WebUI",
         description: "AI chat interface with local LLM support via Ollama",

@@ -11,6 +11,7 @@ A secure, premium, and customizable dashboard for your local home server. Built 
 - ⚡ **Optimized Monitoring**: High-performance system stats and health checks using a centralized polling architecture to minimize network overhead
 - 🔄 **System Update Monitoring**: Track available OS updates and security patches with one-click package listing
 - 🏥 **Resilient Health Checks**: Real-time monitoring with "Internal-to-Public" fallback logic and tiered timeouts for local development support
+- 🔋 **Battery Information**: Real-time battery status, health, and power metrics for laptops and UPS-connected devices (Docker-compatible via host mounts)
 - ⏰ **Customizable Clock**: Toggle between 12-hour and 24-hour time formats with persistent preferences
 - 🐳 **Docker Integration**: Includes Docker Compose setup for essential homelab services
 - 🛡️ **Connectivity Transparency**: Visual markers (Globe icon) indicating when services are using fallback public routes
@@ -116,6 +117,9 @@ If you prefer to start services manually:
    ```bash
    docker-compose up -d --build
    ```
+
+   **Note for Battery/Updates Features in Docker**:
+   The `docker-compose.yml` mounts specific host paths (`/sys/class/power_supply`, `/var/run/reboot-required`, etc.) to allow the container to read host battery status and update information. Ensure your user has read permissions for these paths.
 
 3. **Start the services**:
    ```bash
@@ -226,6 +230,7 @@ The dashboard includes real-time system monitoring using a high-performance poll
 - **RAM**: Active memory usage with total available.
 - **Temperature**: Average temperature of all CPU cores.
 - **Storage**: Usage of the root `/` partition.
+- **Battery**: Detailed power metrics including charge %, health status, voltage, and power draw (requires `/sys` mount in Docker).
 - **Uptime**: System uptime in human-readable format.
 
 ## 🔄 System Update Monitoring

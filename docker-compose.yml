@@ -20,6 +20,7 @@ services:
       - /var/run/reboot-required:/var/run/reboot-required:ro
       - /var/run/reboot-required.pkgs:/var/run/reboot-required.pkgs:ro
       - /var/log/unattended-upgrades:/var/log/unattended-upgrades:ro
+      - /sys/class/power_supply:/sys/class/power_supply:ro
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
 

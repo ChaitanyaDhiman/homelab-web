@@ -16,8 +16,9 @@ export async function GET() {
         // Calculate fan speed based on CPU temperature
         // Since direct fan data isn't available on all systems, we estimate based on temp
         const getFanSpeedLabel = (temperature: number): string => {
-            if (temperature < 40) return 'Low';
-            if (temperature < 60) return 'Mid';
+            if (temperature < 45) return 'Off';
+            if (temperature < 60) return 'Low';
+            if (temperature < 75) return 'Mid';
             if (temperature < 80) return 'High';
             return 'Max';
         };

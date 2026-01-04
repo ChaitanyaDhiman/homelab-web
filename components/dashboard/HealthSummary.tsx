@@ -17,7 +17,7 @@ interface HealthSummaryData {
 export function HealthSummary() {
     const { servicesHealth, loading, error, lastChecked } = useHealth();
     const [isExpanded, setIsExpanded] = useState(false);
-    const { timeFormat, getEffectiveTimeFormat } = useSettings();
+    const { timeFormat, dateFormat, getEffectiveTimeFormat } = useSettings();
 
     // Map API results back to a format suitable for the summary
     const summary: HealthSummaryData | null = servicesHealth ? (() => {
@@ -44,18 +44,36 @@ export function HealthSummary() {
     const data = summary;
 
     // Format timestamp for display
+    // Format timestamp for display
     const formattedLastChecked = lastChecked ? (() => {
-        const now = lastChecked;
+        const date = lastChecked;
         const effectiveFormat = getEffectiveTimeFormat();
+
+        let formattedTime: string;
+        let formattedDate: string;
+
         if (timeFormat === 'auto') {
-            return now.toLocaleTimeString();
+            formattedTime = date.toLocaleTimeString();
+        } else {
+            formattedTime = date.toLocaleTimeString('en-US', {
+                hour12: effectiveFormat === '12h',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
         }
-        return now.toLocaleTimeString('en-US', {
-            hour12: effectiveFormat === '12h',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
+
+        if (dateFormat === 'auto') {
+            formattedDate = date.toLocaleDateString();
+        } else {
+            const options: Intl.DateTimeFormatOptions =
+                dateFormat === 'short' ? { month: 'numeric', day: 'numeric', year: '2-digit' } :
+                    dateFormat === 'medium' ? { month: 'short', day: 'numeric', year: 'numeric' } :
+                        { month: 'long', day: 'numeric', year: 'numeric' };
+            formattedDate = date.toLocaleDateString('en-US', options);
+        }
+
+        return `${formattedDate} ${formattedTime}`;
     })() : null;
 
     if (loading) {
