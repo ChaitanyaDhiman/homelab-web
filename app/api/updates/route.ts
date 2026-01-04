@@ -88,9 +88,9 @@ async function checkRebootRequired(): Promise<{ required: boolean; packages: str
     const rebootFile = '/var/run/reboot-required';
     const rebootPkgsFile = '/var/run/reboot-required.pkgs';
 
-    // Check if reboot-required exists
+    // Check if reboot-required exists and is a file
     try {
-        if (!fs.existsSync(rebootFile)) {
+        if (!fs.existsSync(rebootFile) || !fs.statSync(rebootFile).isFile()) {
             return { required: false, packages: [] };
         }
     } catch {
