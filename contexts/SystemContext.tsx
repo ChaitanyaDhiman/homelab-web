@@ -9,10 +9,12 @@ interface SystemStats {
         used: number;
         free: number;
     };
-    storage: {
-        total: number;
-        used: number;
-        pcent: number;
+    gpu: {
+        name: string;
+        utilization: number;
+        memory: number;
+        memoryTotal: number;
+        temperature: number;
     };
     temperature: number;
     uptime: number;

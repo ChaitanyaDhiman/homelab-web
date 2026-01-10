@@ -18,23 +18,16 @@ services:
     ports:
       - "8096:8096"
     volumes:
-      # Jellyfin config and cache
       - /srv/docker-data/jellyfin/config:/config
       - /srv/docker-data/jellyfin/cache:/cache
-      
-      # Media directories - ADD YOUR PATHS LATER
-      # Uncomment and update these lines when you decide on storage:
-      # - /path/to/movies:/media/movies
-      # - /path/to/tvshows:/media/tvshows
-      # - /path/to/music:/media/music
-      # - /path/to/photos:/media/photos
-      # - /mnt/external-drive:/media/external
-    
+      - /mnt/media/Entertainment/Movies:/media/movies:ro
+      - /mnt/media/Entertainment/Shows:/media/tvshows:ro
+      - /mnt/media/Music:/media/music:ro
     environment:
-      - PUID=1000  # Run: id -u to get your user ID
-      - PGID=1000  # Run: id -g to get your group ID
+      - PUID=1000
+      - PGID=1000
       - TZ=Asia/Kolkata
-      - JELLYFIN_PublishedServerUrl=https://jellyfin.homes
+      - JELLYFIN_PublishedServerUrl=http://192.168.29.197:8096
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
 
@@ -45,7 +38,7 @@ networks:
 # ============================================
 # INSTRUCTIONS FOR ADDING MEDIA LATER:
 # ============================================
-# 
+#
 # When you're ready to add media:
 # 1. Stop Jellyfin: docker-compose down
 # 2. Edit this file and uncomment/add volume mounts

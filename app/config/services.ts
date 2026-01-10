@@ -1,4 +1,4 @@
-import { Server, Activity, Database, Shield, Radio, Gauge, Cloud, Brain } from "lucide-react";
+import { Server, Activity, Database, Shield, Radio, Gauge, Cloud, Brain, File, HardDrive, Camera } from "lucide-react";
 import { OllamaIcon } from "@/components/icons/OllamaIcon";
 
 export interface Service {
@@ -7,7 +7,7 @@ export interface Service {
     description: string;
     url: string;
     icon: any; // Lucide icon
-    category: "media" | "system" | "dev" | "network" | "ai";
+    category: "media" | "system" | "dev" | "network" | "ai" | "storage";
     status?: "online" | "offline" | "unknown";
 }
 
@@ -37,6 +37,24 @@ export const services: Service[] = [
         url: process.env.NEXT_PUBLIC_SERVICE_OPENWEBUI_URL || "/unavailable?service=open-webui",
         icon: OllamaIcon,
         category: "ai",
+        status: "online",
+    },
+    {
+        id: "filebrowser",
+        name: "File Browser",
+        description: "Filebrowser is a web-based file manager for your files",
+        url: process.env.NEXT_PUBLIC_SERVICE_FILEBROWSER_URL || "/unavailable?service=filebrowser",
+        icon: HardDrive,
+        category: "storage",
+        status: "online",
+    },
+    {
+        id: "immich",
+        name: "Immich",
+        description: "Immich is a self-hosted photo and video management solution",
+        url: process.env.NEXT_PUBLIC_SERVICE_IMMICH_URL || "/unavailable?service=immich",
+        icon: Camera,
+        category: "media",
         status: "online",
     },
     {

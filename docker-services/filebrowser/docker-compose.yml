@@ -1,0 +1,28 @@
+# ----------------------------
+# Docker Compose file for Docker Services - Homelab Web
+# Services: Filebrowser
+# ----------------------------
+
+services:
+  filebrowser:
+    image: filebrowser/filebrowser:latest
+    container_name: filebrowser
+    restart: unless-stopped
+    user: "1000:1000" # Ensures it runs with your user permissions
+    ports:
+      - "8085:80"
+    volumes:
+      # Mapping your two external drives into the "srv" folder
+      - /mnt/cloud:/srv/cloud_storage
+      - /mnt/media:/srv/media_drive
+      # Configuration and Database
+      - ~/Documents/homelab-web/homelab-web/docker-services/filebrowser/filebrowser.db:/database/filebrowser.db
+    environment:
+      - PUID=1000
+      - PGID=1000
+    networks:
+      - proxy_net
+
+networks:
+  proxy_net:
+    external: true

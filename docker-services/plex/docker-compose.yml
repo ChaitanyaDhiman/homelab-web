@@ -17,3 +17,5 @@ services:
     volumes:
       - /srv/docker-data/plex/config:/config
       - /srv/docker-data/plex/media:/media
+      - /mnt/media/Entertainment/Movies:/media/movies:ro
+      - /mnt/media/Entertainment/Shows:/media/tvshows:ro

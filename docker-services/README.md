@@ -7,7 +7,7 @@ This directory contains Docker Compose configurations for running essential home
 This setup uses a **modular architecture** with two deployment options:
 
 1. **Individual Services** - Each service in its own folder with dedicated compose file
-2. **All-in-One** - Single compose file for deploying all services together
+2. **All-in-One** - Single compose file for deploying core services together
 
 All services communicate via a shared Docker network called `proxy_net`.
 
@@ -34,7 +34,7 @@ All services communicate via a shared Docker network called `proxy_net`.
 ### 🤖 Open WebUI
 - **Purpose**: Web interface for AI/LLM interactions
 - **Port**: `8080` (internal, exposed via proxy)
-- **Data**: Stored in `./openwebui`
+- **Data**: Stored in `/srv/docker-data/openwebui`
 
 ### 🐳 Portainer
 - **Purpose**: Docker container management UI
@@ -46,7 +46,44 @@ All services communicate via a shared Docker network called `proxy_net`.
 - **Network Mode**: Host (for optimal performance and discovery)
 - **Default Port**: `32400`
 - **Timezone**: Asia/Kolkata
-- **Media Location**: `./media`
+- **Media Location**: `/srv/docker-data/plex/media`
+
+### 🍿 Jellyfin
+- **Purpose**: Open-source media streaming server (alternative to Plex)
+- **Port**: `8096`
+- **Network**: Connected to `proxy_net`
+- **Features**: 
+  - Hardware transcoding support
+  - Multiple media library types (Movies, TV Shows, Music)
+  - Watchtower auto-update enabled
+
+### 📂 Filebrowser
+- **Purpose**: Web-based file manager
+- **Port**: `8085` (mapped to internal `80`)
+- **Network**: Connected to `proxy_net`
+- **Features**: Browse, upload, download, and manage files across multiple drives
+
+### 🖼️ Immich
+- **Purpose**: Self-hosted photo and video management (Google Photos alternative)
+- **Port**: `2283`
+- **Network Mode**: `bridge` (default stack) - NOT on `proxy_net` by default
+- **Access**: `http://<host-ip>:2283` or `http://localhost:2283`
+- **Components**: Server, Machine Learning, Redis, PostgreSQL
+
+### 🖥️ Cockpit
+- **Purpose**: Web-based server administration interface
+- **Port**: `4200` (Docker) or `9090` (host installation)
+- **Network**: Connected to `proxy_net`
+- **Note**: Running on host system is recommended for full functionality
+
+### 🔄 Watchtower
+- **Purpose**: Automated Docker container updates
+- **Schedule**: Every Sunday at 3 AM (configurable)
+- **Features**:
+  - Automatic image updates
+  - Cleanup of old images
+  - Rolling restarts
+  - Per-container control via labels
 
 ## 🚀 Getting Started
 
@@ -75,7 +112,7 @@ See [network/README.md](./network/README.md) for detailed networking documentati
 
 ### Option 1: All-in-One Deployment
 
-Deploy all services with a single command using the all-in-one compose file.
+Deploy core services (NPM, Pi-hole, Open WebUI, Portainer, Plex) with a single command.
 
 #### Without Environment Variables
 ```bash
@@ -139,10 +176,35 @@ cd plex
 docker compose up -d
 ```
 
+**Jellyfin**:
+```bash
+cd jellyfish  # Note: folder name is jellyfish
+docker compose up -d
+```
+
+**Filebrowser**:
+```bash
+cd filebrowser
+docker compose up -d
+```
+
+**Immich** (requires .env with DB credentials):
+```bash
+cd immich
+# Create .env with required variables
+docker compose up -d
+```
+
+**Watchtower**:
+```bash
+cd watchtower
+docker compose up -d
+```
+
 #### Start All Individual Services (Script)
 ```bash
 # From docker-services directory
-for service in nginx-proxy-manager pihole open-webui portainer plex; do
+for service in nginx-proxy-manager pihole open-webui portainer plex jellyfish filebrowser watchtower; do
   echo "Starting $service..."
   cd $service && docker compose up -d && cd ..
 done
@@ -153,31 +215,32 @@ done
 ```
 docker-services/
 ├── README.md                           # This file
-├── docker-compose.allInOne.yml        # All-in-one deployment
-├── network/                           # Network documentation
-│   └── README.md                      # Networking guide
-├── nginx-proxy-manager/               # Nginx Proxy Manager
+├── docker-compose.allInOne.yml         # All-in-one deployment (core services)
+├── .env                                # Environment variables
+├── network/                            # Network documentation
+│   └── README.md                       # Networking guide
+├── nginx-proxy-manager/                # Nginx Proxy Manager
+│   └── docker-compose.yml
+├── pihole/                             # Pi-hole
 │   ├── docker-compose.yml
-│   ├── npm/                           # Data volumes
-│   │   ├── data/
-│   │   └── letsencrypt/
-├── pihole/                            # Pi-hole
+│   └── .env                            # PIHOLE_API_PASSWORD
+├── open-webui/                         # Open WebUI
+│   └── docker-compose.yml
+├── portainer/                          # Portainer
+│   └── docker-compose.yml
+├── plex/                               # Plex Media Server
+│   └── docker-compose.yml
+├── jellyfish/                          # Jellyfin Media Server
+│   └── docker-compose.yml
+├── filebrowser/                        # Filebrowser
+│   └── docker-compose.yml
+├── immich/                             # Immich Photo Management
 │   ├── docker-compose.yml
-│   ├── .env                           # Environment variables
-│   └── pihole/                        # Data volumes
-│       ├── etc-pihole/
-│       └── etc-dnsmasq.d/
-├── open-webui/                        # Open WebUI
-│   ├── docker-compose.yml
-│   └── openwebui/                     # Data volume
-├── portainer/                         # Portainer
-│   ├── docker-compose.yml
-│   └── portainer/                     # Data volume
-└── plex/                              # Plex Media Server
-    ├── docker-compose.yml
-    ├── plex/
-    │   └── config/                    # Config volume
-    └── media/                         # Media files
+│   └── .env                            # Immich config
+├── cockpit/                            # Cockpit Server Admin
+│   └── docker-compose.yml
+└── watchtower/                         # Watchtower Auto-Updates
+    └── docker-compose.yml
 ```
 
 ## 🔧 Management Commands
@@ -231,6 +294,24 @@ docker compose pull
 docker compose up -d
 ```
 
+### Watchtower Control
+
+Control which containers Watchtower updates using labels:
+
+```yaml
+# Disable updates for a container
+labels:
+  - "com.centurylinklabs.watchtower.enable=false"
+
+# Enable updates (default)
+labels:
+  - "com.centurylinklabs.watchtower.enable=true"
+
+# Custom stop timeout
+labels:
+  - "com.centurylinklabs.watchtower.stop-timeout=120s"
+```
+
 ### Environment Variable Commands
 
 ```bash
@@ -249,7 +330,7 @@ docker compose config
 
 ## 🌐 Network Configuration
 
-All services (except Plex) connect to the external `proxy_net` bridge network. This allows:
+All services (except Plex and Immich) connect to the external `proxy_net` bridge network. This allows:
 
 - Service discovery by container name
 - Nginx Proxy Manager to route traffic internally
@@ -271,12 +352,16 @@ All services (except Plex) connect to the external `proxy_net` bridge network. T
 | Pi-hole | `pihole` | 8081 (web), 53 (DNS) |
 | Open WebUI | `open-webui` | 8080 |
 | Portainer | `portainer` | 9443 |
+| Jellyfin | `jellyfin` | 8096 |
+| Filebrowser | `filebrowser` | 80 |
+| Cockpit | `cockpit` | 4200 |
 
 ### Services NOT on proxy_net
 
 | Service | Network Mode | Reason |
 |---------|-------------|--------|
 | Plex | `host` | DLNA discovery, streaming performance |
+| Immich | `bridge` (isolated) | Default stack configuration |
 
 ### Recommended Proxy Host Setup
 
@@ -287,7 +372,11 @@ Configure these in Nginx Proxy Manager:
 | Pi-hole | `pihole.yourdomain.com` | `pihole` | `8081` | `http` |
 | Open WebUI | `ai.yourdomain.com` | `open-webui` | `8080` | `http` |
 | Portainer | `docker.yourdomain.com` | `portainer` | `9443` | `https` |
+| Jellyfin | `jellyfin.yourdomain.com` | `jellyfin` | `8096` | `http` |
+| Filebrowser | `files.yourdomain.com` | `filebrowser` | `80` | `http` |
+| Cockpit | `cockpit.yourdomain.com` | `cockpit` | `4200` | `https` |
 | Plex | `plex.yourdomain.com` | `<host-ip>` | `32400` | `http` |
+| Immich | `photos.yourdomain.com` | `<host-ip>` | `2283` | `http` |
 
 ## 🔐 Environment Variables
 
@@ -295,6 +384,11 @@ Configure these in Nginx Proxy Manager:
 
 **Pi-hole**:
 - `PIHOLE_API_PASSWORD` - Admin password for Pi-hole web interface
+
+**Immich** (in immich/.env):
+- `UPLOAD_LOCATION` - Path for photo uploads
+- `DB_PASSWORD` - PostgreSQL password
+- `IMMICH_VERSION` - Version tag (default: `release`)
 
 ### Optional Variables
 
@@ -305,7 +399,7 @@ All services use default configurations if environment variables are not provide
 **For All-in-One deployment**:
 ```bash
 # In docker-services directory
-cat > .env << EOF
+cat > .env <<EOF
 PIHOLE_API_PASSWORD=your_secure_password_here
 EOF
 ```
@@ -314,7 +408,7 @@ EOF
 ```bash
 # In pihole directory
 cd pihole
-cat > .env << EOF
+cat > .env <<EOF
 PIHOLE_API_PASSWORD=your_secure_password_here
 EOF
 ```
@@ -340,7 +434,7 @@ docker compose up -d
 
 ### 4. Start Other Services
 ```bash
-# Option A: All at once
+# Option A: All at once (core services)
 docker compose -f docker-compose.allInOne.yml up -d
 
 # Option B: One by one
@@ -348,6 +442,9 @@ cd pihole && docker compose up -d && cd ..
 cd open-webui && docker compose up -d && cd ..
 cd portainer && docker compose up -d && cd ..
 cd plex && docker compose up -d && cd ..
+cd jellyfish && docker compose up -d && cd ..
+cd filebrowser && docker compose up -d && cd ..
+cd watchtower && docker compose up -d && cd ..
 ```
 
 ### 5. Configure Proxy Hosts
@@ -363,11 +460,11 @@ In Nginx Proxy Manager, add proxy hosts for each service (see table above).
 - ✅ Change all default passwords immediately
 - ✅ Use SSL/TLS certificates (Let's Encrypt via NPM)
 - ✅ Restrict admin interface access (use authentication)
-- ✅ Keep services updated regularly
+- ✅ Keep services updated regularly (Watchtower handles this)
 - ✅ Use strong passwords in .env files
 - ✅ Add .env to .gitignore (never commit secrets)
 - ✅ Review Pi-hole logs for suspicious activity
-- ✅ Limit Plex remote access if not needed
+- ✅ Limit Plex/Jellyfin remote access if not needed
 - ✅ Use Portainer RBAC for multi-user environments
 
 ## 🐛 Troubleshooting
@@ -415,7 +512,7 @@ docker compose --env-file .env config
 
 ```bash
 # Fix ownership of data directories
-sudo chown -R $USER:$USER ./npm ./pihole ./openwebui ./portainer ./plex
+sudo chown -R $USER:$USER /srv/docker-data
 ```
 
 ### Plex Not Accessible
@@ -424,6 +521,12 @@ sudo chown -R $USER:$USER ./npm ./pihole ./openwebui ./portainer ./plex
 - Check firewall rules for port 32400
 - Verify Plex claim token (if used)
 - Check Plex logs: `docker logs plex`
+
+### Jellyfin Not Accessible
+
+- Check if port 8096 is not in use
+- Verify volumes are correctly mounted
+- Check logs: `docker logs jellyfin`
 
 ### DNS Issues with Pi-hole
 
@@ -435,6 +538,12 @@ sudo chown -R $USER:$USER ./npm ./pihole ./openwebui ./portainer ./plex
   ```
 - Check Pi-hole logs: `docker compose logs pihole`
 
+### Watchtower Not Updating Containers
+
+- Check Watchtower logs: `docker logs watchtower`
+- Verify container labels are set correctly
+- Check schedule configuration
+
 ## 📚 Additional Resources
 
 - [Network Documentation](./network/README.md)
@@ -443,6 +552,9 @@ sudo chown -R $USER:$USER ./npm ./pihole ./openwebui ./portainer ./plex
 - [Open WebUI Documentation](https://github.com/open-webui/open-webui)
 - [Portainer Documentation](https://docs.portainer.io/)
 - [Plex Documentation](https://support.plex.tv/)
+- [Jellyfin Documentation](https://jellyfin.org/docs/)
+- [Immich Documentation](https://immich.app/docs/overview/introduction)
+- [Watchtower Documentation](https://containrrr.dev/watchtower/)
 - [Docker Compose Documentation](https://docs.docker.com/compose/)
 
 ## 🤝 Integration with Homelab Web
@@ -460,15 +572,15 @@ These services provide the infrastructure for the Homelab Web application:
 2. **Use the all-in-one file** for quick deployments and testing
 3. **Use individual services** for production and granular control
 4. **Keep .env files secure** and never commit them to git
-5. **Regular backups** of volume data (especially Pi-hole and Plex configs)
+5. **Regular backups** of volume data (especially Pi-hole, Plex, Jellyfin, Immich configs)
 6. **Monitor logs** regularly for issues: `docker compose logs -f`
-7. **Update services** monthly: `docker compose pull && docker compose up -d`
+7. **Use Watchtower** for automated updates with container-level control
 8. **Use Portainer** for easy container management and monitoring
 
 ## 📝 Notes
 
-- All data is persisted in local directories within each service folder
+- All data is persisted in `/srv/docker-data` or local directories
 - Services automatically restart unless manually stopped
 - Timezone is set to Asia/Kolkata (adjust in compose files if needed)
-- Media files for Plex should be placed in `./plex/media` directory
+- Media files for Plex/Jellyfin should be placed in configured directories
 - The all-in-one file creates the network; individual files expect it to exist

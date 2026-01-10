@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Cpu, HardDrive, Activity, Thermometer, Clock, Fan } from "lucide-react";
+import { Cpu, Gpu, Activity, Thermometer, Clock, Fan } from "lucide-react";
 import { useSystem } from "@/contexts/SystemContext";
 import { useSettings } from "@/contexts/SettingsContext";
 
@@ -12,10 +12,12 @@ interface SystemStats {
         used: number;
         free: number;
     };
-    storage: {
-        total: number;
-        used: number;
-        pcent: number;
+    gpu: {
+        name: string;
+        utilization: number;
+        memory: number;
+        memoryTotal: number;
+        temperature: number;
     };
     temperature: number;
     uptime: number;
@@ -123,17 +125,17 @@ export function SystemStatus() {
                 />
                 <div className="w-px h-12 bg-white/10 hidden lg:block" />
                 <StatusItem
+                    label="GPU Usage"
+                    value={stats ? `${stats.gpu.utilization}%` : "..."}
+                    icon={Gpu}
+                    color="text-green-400"
+                />
+                <div className="w-px h-12 bg-white/10 hidden lg:block" />
+                <StatusItem
                     label="Memory"
                     value={stats ? formatBytes(stats.memory.used) : "..."}
                     icon={Activity}
                     color="text-purple-400"
-                />
-                <div className="w-px h-12 bg-white/10 hidden lg:block" />
-                <StatusItem
-                    label="Storage"
-                    value={stats ? `${stats.storage.pcent}%` : "..."}
-                    icon={HardDrive}
-                    color="text-green-400"
                 />
                 <div className="w-px h-12 bg-white/10 hidden lg:block" />
                 <StatusItem

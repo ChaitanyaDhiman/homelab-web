@@ -8,10 +8,11 @@ A secure, premium, and customizable dashboard for your local home server. Built 
 
 - 🚀 **Centralized Hub**: Single entry point for all your local services with optimized state management via React Context
 - 🎨 **Premium Design**: "Deep Space" theme with glassmorphism, animated backgrounds, and interactive hover effects
-- ⚡ **Optimized Monitoring**: High-performance system stats and health checks using a centralized polling architecture to minimize network overhead
+- ⚡ **Optimized Monitoring**: High-performance system stats (CPU, GPU, RAM, Temperature, Fan Speed) using a centralized polling architecture
 - 🔄 **System Update Monitoring**: Track available OS updates and security patches with one-click package listing
-- 🏥 **Resilient Health Checks**: Real-time monitoring with "Internal-to-Public" fallback logic and tiered timeouts for local development support
-- 🔋 **Battery Information**: Real-time battery status, health, and power metrics for laptops and UPS-connected devices (Docker-compatible via host mounts)
+- 🏥 **Resilient Health Checks**: Real-time monitoring with "Internal-to-Public" fallback logic and tiered timeouts
+- 🔋 **Battery Information**: Real-time battery status, health, and power metrics (Docker-compatible via host mounts)
+- 💾 **Storage Monitoring**: Configurable multi-drive storage display with automatic detection of mounted drives
 - ⏰ **Customizable Clock**: Toggle between 12-hour and 24-hour time formats with persistent preferences
 - 🐳 **Docker Integration**: Includes Docker Compose setup for essential homelab services
 - 🛡️ **Connectivity Transparency**: Visual markers (Globe icon) indicating when services are using fallback public routes
@@ -33,6 +34,10 @@ This project includes two main components:
 - **Open WebUI** - Web interface for AI/LLM interactions
 - **Portainer** - Docker container management UI
 - **Plex Media Server** - Media streaming server
+- **Jellyfin** - Open-source media streaming server
+- **Filebrowser** - Web-based file manager for your drives
+- **Immich** - Self-hosted photo and video management
+- **Cockpit** - Web-based server administration interface
 - **Watchtower** - Automated Docker container updates (scheduled weekly on Sundays at 3 AM)
 
 See the [docker-services README](./docker-services/README.md) for detailed documentation on these services.
@@ -65,9 +70,15 @@ See the [docker-services README](./docker-services/README.md) for detailed docum
    
    Edit `.env.local` to add your service URLs:
    ```env
-   NEXT_PUBLIC_SERVICE_PLEX_URL=http://192.168.1.10:32400/web
-   NEXT_PUBLIC_SERVICE_PIHOLE_URL=http://192.168.1.5/admin
-   NEXT_PUBLIC_SERVICE_PORTAINER_URL=http://192.168.1.5:9443
+   NEXT_PUBLIC_SERVICE_PLEX_URL=http://192.168.xx.xx:32400/web
+   NEXT_PUBLIC_SERVICE_JELLYFIN_URL=http://192.168.xx.xx:8096
+   NEXT_PUBLIC_SERVICE_PIHOLE_URL=http://192.168.xx.xx/admin
+   NEXT_PUBLIC_SERVICE_PORTAINER_URL=http://192.168.xx.xx:9443
+   NEXT_PUBLIC_SERVICE_OPENWEBUI_URL=http://192.168.xx.xx:8080
+   NEXT_PUBLIC_SERVICE_FILEBROWSER_URL=http://192.168.xx.xx:8085
+   NEXT_PUBLIC_SERVICE_IMMICH_URL=http://192.168.xx.xx:2283
+   NEXT_PUBLIC_SERVICE_COCKPIT_URL=http://192.168.xx.xx:9090
+   NEXT_PUBLIC_SERVICE_NPM_URL=http://192.168.xx.xx:82
    # ... add your specific IPs/Ports
    ```
 
@@ -101,7 +112,7 @@ The easiest way to deploy the dashboard along with all homelab services is using
 This script will:
 1. Create the necessary Docker network (`proxy_net`)
 2. Start networking services (Nginx Proxy Manager, Pi-hole)
-3. Start core services (Plex, Portainer, Open WebUI)
+3. Start core services (Plex, Jellyfin, Portainer, Open WebUI)
 4. Build and start the Next.js dashboard
 
 ### Manual Full Stack Deployment
@@ -155,18 +166,23 @@ For secure access with HTTPS:
 ```
 homelab-web/
 ├── app/                      # Next.js app directory
-│   ├── api/                  # API routes (health, system, updates, terminal)
-│   ├── config/              # Configuration files (services.ts)
-│   └── globals.css          # Global styles & theme
-├── components/              # React components
-│   ├── dashboard/          # Dashboard widgets (HealthSummary, SystemUpdateStatus)
-│   ├── terminal/           # Terminal components
-│   └── ui/                 # Reusable UI elements
-├── contexts/                 # Centralized state management (Health, System, Settings)
-├── docker-services/        # Docker services configuration
-├── start-homelab.sh        # Deployment helper script
-├── docker-compose.yml      # Dashboard compose file
-└── README.md               # This file
+│   ├── api/                  # API routes (health, system, storage, updates)
+│   ├── config/               # Configuration files
+│   │   ├── services.ts       # Service definitions
+│   │   └── storage.ts        # Storage drive configuration
+│   └── globals.css           # Global styles & theme
+├── components/               # React components
+│   ├── dashboard/            # Dashboard widgets (HealthSummary, StorageWidget, SystemUpdateStatus)
+│   ├── icons/                # Custom icons (OllamaIcon)
+│   └── ui/                   # Reusable UI elements
+├── contexts/                 # Centralized state management
+│   ├── HealthContext.tsx     # Service health polling
+│   ├── SystemContext.tsx     # System stats polling
+│   └── SettingsContext.tsx   # User preferences
+├── docker-services/          # Docker services configuration
+├── start-homelab.sh          # Deployment helper script
+├── docker-compose.yml        # Dashboard compose file
+└── README.md                 # This file
 ```
 
 ## ⚙️ Configuration
@@ -190,11 +206,43 @@ homelab-web/
        description: "Description of the app",
        url: process.env.NEXT_PUBLIC_SERVICE_NEWAPP_URL || "/unavailable?service=new-app",
        icon: Layout,
-       category: "system", // 'media' | 'system' | 'dev' | 'network' | 'ai'
+       category: "system", // 'media' | 'system' | 'dev' | 'network' | 'ai' | 'storage'
        status: "online",
      },
    ];
    ```
+
+### Configuring Storage Drives
+
+Edit `app/config/storage.ts` to configure which drives are displayed:
+
+```typescript
+export const storageDrives: StorageDrive[] = [
+  {
+    id: "main",
+    name: "main",
+    label: "Main Storage",
+    mount: "/",           // Root partition
+    icon: Server,
+  },
+  {
+    id: "cloud",
+    name: "cloud",
+    label: "Cloud Storage",
+    mount: "/mnt/cloud",  // Your cloud mount point
+    icon: Cloud,
+  },
+  {
+    id: "media",
+    name: "media",
+    label: "Media Storage",
+    mount: "/mnt/media",  // Your media drive mount point
+    icon: Film,
+  },
+];
+```
+
+Only drives that are actually present on the system will be displayed.
 
 ### Customizing the Theme
 
@@ -227,15 +275,17 @@ The dashboard includes real-time system monitoring using a high-performance poll
 
 - **Centralized Polling**: Single `/api/system` call every 5 seconds shared across all components via `SystemContext`.
 - **CPU**: Current usage percentage and load average.
+- **GPU**: Utilization percentage, memory usage, and temperature (NVIDIA/AMD support via `systeminformation`).
 - **RAM**: Active memory usage with total available.
 - **Temperature**: Average temperature of all CPU cores.
-- **Storage**: Usage of the root `/` partition.
+- **Fan Speed**: System fan speed monitoring.
+- **Storage**: Usage of configured drives via `/api/storage` with automatic detection.
 - **Battery**: Detailed power metrics including charge %, health status, voltage, and power draw (requires `/sys` mount in Docker).
 - **Uptime**: System uptime in human-readable format.
 
 ## 🔄 System Update Monitoring
 
-New in v1.1, the dashboard monitors host system updates managed by **Unattended Upgrades (APT)**:
+The dashboard monitors host system updates managed by **Unattended Upgrades (APT)**:
 
 - **Automated Management**: Leverages system-level `unattended-upgrades` to keep the host OS patched and secure.
 - **Urgency Awareness**: Badges change color based on urgency:
@@ -277,6 +327,8 @@ Access comprehensive server management through Cockpit:
 - Storage and network configuration
 - Integrated with your homelab services
 
+**Note**: Running Cockpit directly on the host system is recommended over Docker for full functionality.
+
 ## 🛠️ Development
 
 ### Available Scripts
@@ -284,7 +336,7 @@ Access comprehensive server management through Cockpit:
 ```bash
 npm run dev      # Start development server
 npm run build    # Build for production
-npm start        # Start production server (port 9000)
+npm start        # Start production server (port 3000)
 npm run lint     # Run ESLint
 ```
 
@@ -295,7 +347,7 @@ npm run lint     # Run ESLint
 - **Styling**: Tailwind CSS 4
 - **Animations**: Framer Motion 12
 - **Icons**: Lucide React
-- **Server Management**: Cockpit (Docker service)
+- **Server Management**: Cockpit
 - **System Info**: systeminformation
 - **TypeScript**: Full type safety
 
@@ -304,7 +356,7 @@ npm run lint     # Run ESLint
 - Change all default passwords immediately after deployment
 - Use SSL/TLS certificates for all services
 - Restrict access to admin interfaces
-- Keep all services updated regularly
+- Keep all services updated regularly (Watchtower handles this automatically)
 - Use strong passwords and consider implementing authentication
 - Review Pi-hole logs for suspicious DNS queries
 - Limit external access to services that don't need it
@@ -333,13 +385,20 @@ docker-compose up -d --build --force-recreate
 - Ensure the dashboard has proper permissions to read system info
 - Check `/api/system` endpoint in browser DevTools
 - Verify `systeminformation` package is installed
+- For GPU stats, ensure you have NVIDIA/AMD drivers installed
+
+### Storage Drives Not Showing
+
+- Check that the mount points in `app/config/storage.ts` match your actual mounts
+- Verify the drives are mounted: `df -h`
+- Only drives that are actually present will be displayed
 
 ### Cockpit Not Accessible
 
-- Verify Cockpit service is running: `docker ps | grep cockpit`
+- Verify Cockpit service is running on the host or in Docker
 - Check Nginx Proxy Manager configuration for Cockpit
-- Ensure port 9090 is not blocked by firewall
-- Check Cockpit logs: `docker logs cockpit`
+- Ensure port 9090 (host) or 4200 (Docker) is not blocked by firewall
+- Check logs: `systemctl status cockpit` (host) or `docker logs cockpit` (Docker)
 
 ## 📚 Additional Resources
 

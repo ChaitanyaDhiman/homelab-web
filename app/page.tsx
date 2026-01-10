@@ -2,7 +2,7 @@ import { DashboardGrid } from "@/components/DashboardGrid";
 import { SystemStatus } from "@/components/SystemStatus";
 import { HealthSummary } from "@/components/dashboard/HealthSummary";
 import { UpdateStatus } from '@/components/dashboard/SystemUpdateStatus';
-import { BatteryWidget } from '@/components/dashboard/BatteryWidget';
+import { StorageWidget } from '@/components/dashboard/StorageWidget';
 
 export default function Home() {
   return (
@@ -27,7 +27,7 @@ export default function Home() {
       </div>
 
       <div className="mb-8">
-        <BatteryWidget />
+        <StorageWidget />
       </div>
 
       <DashboardGrid />

@@ -45,3 +45,8 @@ self-signed.key
 *.tsbuildinfo
 next-env.d.ts
 .vscode/settings.json
+docker-services/filebrowser/filebrowser.db
+**/postgres_data
+**/redis_data
+**/data
+!docker-services/**/docker-compose.yml
