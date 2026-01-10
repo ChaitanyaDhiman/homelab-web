@@ -28,6 +28,14 @@ services:
       - PGID=1000
       - TZ=Asia/Kolkata
       - JELLYFIN_PublishedServerUrl=http://192.168.29.197:8096
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
 

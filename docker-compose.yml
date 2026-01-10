@@ -13,6 +13,13 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - proxy_net
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
     volumes:
       - /var/lib/apt/lists:/var/lib/apt/lists:ro
       - /var/lib/dpkg/status:/var/lib/dpkg/status:ro
@@ -21,6 +28,9 @@ services:
       - /var/run/reboot-required.pkgs:/var/run/reboot-required.pkgs:ro
       - /var/log/unattended-upgrades:/var/log/unattended-upgrades:ro
       - /sys/class/power_supply:/sys/class/power_supply:ro
+      # Storage monitoring - mount /proc to read host filesystem info
+      - /proc:/host/proc:ro
+      - /:/host/root:ro
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
 

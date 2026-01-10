@@ -14,6 +14,14 @@ services:
     restart: unless-stopped
     environment:
       - TZ=Asia/Kolkata
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
     volumes:
       - /srv/docker-data/plex/config:/config
       - /srv/docker-data/plex/media:/media
