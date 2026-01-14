@@ -45,7 +45,6 @@ export function ServiceCard({ service }: ServiceCardProps) {
                     <ExternalLink className="w-4 h-4 text-gray-500" />
                 </div>
 
-                {/* Glow effect on hover */}
                 <div className="absolute -inset-1 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] opacity-0 group-hover:opacity-20 blur-xl transition-all duration-500 -z-10" />
             </Link>
         </motion.div>

@@ -18,7 +18,6 @@ export function SettingsPanel() {
             const now = new Date();
             const effectiveTimeFormat = getEffectiveTimeFormat();
 
-            // Format time
             let formattedTime: string;
             if (timeFormat === 'auto') {
                 formattedTime = now.toLocaleTimeString();
@@ -32,7 +31,6 @@ export function SettingsPanel() {
             }
             setPreviewTime(formattedTime);
 
-            // Format date
             let formattedDate: string;
             if (dateFormat === 'auto') {
                 formattedDate = now.toLocaleDateString();

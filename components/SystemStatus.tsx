@@ -31,18 +31,14 @@ export function SystemStatus() {
     const { timeFormat, dateFormat, getEffectiveTimeFormat } = useSettings();
 
     useEffect(() => {
-        // Only access window/Date on client
         const updateDateTime = () => {
             const now = new Date();
             const effectiveFormat = getEffectiveTimeFormat();
 
-            // Format time
             let formattedTime: string;
             if (timeFormat === 'auto') {
-                // Use browser's default locale
                 formattedTime = now.toLocaleTimeString();
             } else {
-                // Use user's preference
                 formattedTime = now.toLocaleTimeString('en-US', {
                     hour12: effectiveFormat === '12h',
                     hour: '2-digit',
@@ -52,13 +48,10 @@ export function SystemStatus() {
             }
             setTime(formattedTime);
 
-            // Format date
             let formattedDate: string;
             if (dateFormat === 'auto') {
-                // Use browser's default locale
                 formattedDate = now.toLocaleDateString();
             } else {
-                // Use user's preference
                 const options: Intl.DateTimeFormatOptions =
                     dateFormat === 'short' ? { month: 'numeric', day: 'numeric', year: '2-digit' } :
                         dateFormat === 'medium' ? { month: 'short', day: 'numeric', year: 'numeric' } :

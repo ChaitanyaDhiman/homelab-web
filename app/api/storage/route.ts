@@ -30,14 +30,8 @@ interface MountInfo {
     percentage: number;
 }
 
-/**
- * Parse mount info from /proc/mounts or /host/proc/mounts
- * Returns filesystem data similar to systeminformation
- */
 async function getHostFilesystemInfo(): Promise<MountInfo[]> {
     const mounts: MountInfo[] = [];
-
-    // Determine which proc to use (Docker vs host)
     const hostProcPath = '/host/proc/mounts';
     const defaultProcPath = '/proc/mounts';
     const procPath = existsSync(hostProcPath) ? hostProcPath : defaultProcPath;
@@ -47,13 +41,11 @@ async function getHostFilesystemInfo(): Promise<MountInfo[]> {
         const mountsContent = readFileSync(procPath, 'utf-8');
         const lines = mountsContent.split('\n').filter(l => l.trim());
 
-        // Filter for real filesystems (not tmpfs, proc, sys, etc.)
         const realFs = lines.filter(line => {
             const parts = line.split(' ');
             const device = parts[0];
             const fstype = parts[2];
 
-            // Include real block devices and common network filesystems
             return (
                 device.startsWith('/dev/') ||
                 fstype === 'nfs' ||
@@ -70,19 +62,14 @@ async function getHostFilesystemInfo(): Promise<MountInfo[]> {
             let mount = parts[1];
             const fstype = parts[2];
 
-            // In Docker, mounts might be under /host/root
-            // We need to check both the raw mount and the host-prefixed version
             const hostRootPrefix = '/host/root';
             const actualMount = isDocker && mount.startsWith(hostRootPrefix)
                 ? mount.substring(hostRootPrefix.length) || '/'
                 : mount;
 
             try {
-                // Get disk usage using df command
-                // In Docker, we read from /host/root prefixed paths
                 const dfPath = isDocker ? `${hostRootPrefix}${actualMount === '/' ? '' : actualMount}` : actualMount;
 
-                // Check if path exists
                 if (!existsSync(dfPath)) continue;
 
                 const dfOutput = execSync(`df -B1 "${dfPath}" 2>/dev/null | tail -1`, { encoding: 'utf-8' });
@@ -94,7 +81,6 @@ async function getHostFilesystemInfo(): Promise<MountInfo[]> {
                     const available = parseInt(dfParts[3], 10) || 0;
                     const percentage = parseInt(dfParts[4].replace('%', ''), 10) || 0;
 
-                    // Only add if we got valid data and it's not already in the list
                     if (total > 0 && !mounts.find(m => m.mount === actualMount)) {
                         mounts.push({
                             device,
@@ -108,7 +94,6 @@ async function getHostFilesystemInfo(): Promise<MountInfo[]> {
                     }
                 }
             } catch {
-                // Skip mounts we can't read
                 continue;
             }
         }
@@ -121,10 +106,8 @@ async function getHostFilesystemInfo(): Promise<MountInfo[]> {
 
 export async function GET() {
     try {
-        // Try to get host filesystem info first (works in Docker with /host/proc mount)
         let fsData = await getHostFilesystemInfo();
 
-        // If we couldn't get data from /proc/mounts, fall back to systeminformation
         if (fsData.length === 0) {
             const siData = await si.fsSize();
             fsData = siData.map(d => ({
@@ -140,13 +123,10 @@ export async function GET() {
 
         const drives: DriveInfo[] = [];
 
-        // Iterate through configured drives
         for (const configDrive of storageDrives) {
-            // Try to find the mount point in system data
             const foundMount = fsData.find(d => d.mount === configDrive.mount);
 
             if (foundMount) {
-                // Use actual system data
                 drives.push({
                     id: configDrive.id,
                     name: configDrive.name,
@@ -160,7 +140,6 @@ export async function GET() {
                     found: true,
                 });
             } else if (configDrive.fallback) {
-                // Use fallback data if configured
                 drives.push({
                     id: configDrive.id,
                     name: configDrive.name,
@@ -174,7 +153,6 @@ export async function GET() {
                     found: false,
                 });
             }
-            // If no fallback and mount not found, skip this drive
         }
 
         return NextResponse.json({

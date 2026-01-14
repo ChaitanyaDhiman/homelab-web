@@ -19,7 +19,6 @@ export function HealthSummary() {
     const [isExpanded, setIsExpanded] = useState(false);
     const { timeFormat, dateFormat, getEffectiveTimeFormat } = useSettings();
 
-    // Map API results back to a format suitable for the summary
     const summary: HealthSummaryData | null = servicesHealth ? (() => {
         const results = services.map(service => {
             const statusData = servicesHealth[service.id];
@@ -43,8 +42,6 @@ export function HealthSummary() {
 
     const data = summary;
 
-    // Format timestamp for display
-    // Format timestamp for display
     const formattedLastChecked = lastChecked ? (() => {
         const date = lastChecked;
         const effectiveFormat = getEffectiveTimeFormat();
@@ -103,7 +100,6 @@ export function HealthSummary() {
 
     const healthPercentage = data.total > 0 ? Math.round((data.online / data.total) * 100) : 0;
 
-    // Determine health status color: green (100%), yellow (>80% & no offline), red (otherwise)
     const getHealthStatus = () => {
         if (healthPercentage === 100) return 'green';
         if (healthPercentage >= 80 && data.offline === 0) return 'yellow';

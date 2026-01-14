@@ -44,7 +44,7 @@ export function StorageWidget() {
         };
 
         fetchStorage();
-        const interval = setInterval(fetchStorage, 30000); // 30 seconds
+        const interval = setInterval(fetchStorage, 30000);
         return () => clearInterval(interval);
     }, []);
 
@@ -85,7 +85,6 @@ export function StorageWidget() {
         return null;
     }
 
-    // Calculate overall storage status
     const totalStorage = data.drives.reduce((acc, drive) => acc + drive.total, 0);
     const totalUsed = data.drives.reduce((acc, drive) => acc + drive.used, 0);
     const overallPercentage = totalStorage > 0 ? Math.round((totalUsed / totalStorage) * 100) : 0;

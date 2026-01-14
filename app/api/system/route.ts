@@ -14,8 +14,6 @@ export async function GET() {
             si.time()
         ]);
 
-        // Calculate fan speed based on CPU temperature
-        // Since direct fan data isn't available on all systems, we estimate based on temp
         const getFanSpeedLabel = (temperature: number): string => {
             if (temperature < 45) return 'Off';
             if (temperature < 60) return 'Low';
@@ -24,14 +22,12 @@ export async function GET() {
             return 'Max';
         };
 
-        // Get average CPU temperature
         const avgTemp = temp.cores.length > 0
             ? Math.round(temp.cores.reduce((a, b) => a + b, 0) / temp.cores.length)
             : temp.main;
 
         const fanSpeed = avgTemp > 0 ? getFanSpeedLabel(avgTemp) : 'Off';
 
-        // Get GPU info using nvidia-smi for accurate data
         let gpuData = {
             name: 'N/A',
             utilization: 0,
@@ -41,7 +37,6 @@ export async function GET() {
         };
 
         try {
-            // Try nvidia-smi first for Nvidia GPUs
             const { stdout } = await execAsync(
                 'nvidia-smi --query-gpu=name,utilization.gpu,memory.used,memory.total,temperature.gpu --format=csv,noheader,nounits'
             );
@@ -59,7 +54,6 @@ export async function GET() {
                 }
             }
         } catch (nvidiaError) {
-            // nvidia-smi not available, try systeminformation as fallback
             try {
                 const graphics = await si.graphics();
                 const gpuController = graphics.controllers.find(gpu =>

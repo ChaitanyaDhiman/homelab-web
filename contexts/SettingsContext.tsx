@@ -26,7 +26,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         setMounted(true);
-        // Load from localStorage on mount
         const savedTimeFormat = localStorage.getItem('timeFormat') as TimeFormat;
         const savedDateFormat = localStorage.getItem('dateFormat') as DateFormat;
         const savedTheme = localStorage.getItem('theme') as Theme;
@@ -63,7 +62,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    // Apply theme to document
     useEffect(() => {
         if (!mounted) return;
 
@@ -71,13 +69,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
             let effectiveTheme: 'light' | 'dark' = 'dark';
 
             if (theme === 'auto') {
-                // Detect system preference
                 effectiveTheme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
             } else {
                 effectiveTheme = theme;
             }
 
-            // Apply theme to document
             if (effectiveTheme === 'light') {
                 document.documentElement.classList.add('light-theme');
                 document.documentElement.classList.remove('dark-theme');
@@ -89,7 +85,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
         applyTheme();
 
-        // Listen for system theme changes when in auto mode
         if (theme === 'auto') {
             const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
             const handleChange = () => applyTheme();
@@ -98,13 +93,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         }
     }, [theme, mounted]);
 
-    // Detect browser's default time format
     const getEffectiveTimeFormat = (): '12h' | '24h' => {
         if (timeFormat !== 'auto') {
             return timeFormat;
         }
 
-        // Detect browser's locale preference
         const testDate = new Date(2000, 0, 1, 13, 0, 0);
         const formatted = testDate.toLocaleTimeString();
         return formatted.includes('PM') || formatted.includes('AM') ? '12h' : '24h';

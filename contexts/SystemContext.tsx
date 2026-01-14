@@ -56,7 +56,6 @@ export function SystemProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         refreshStats();
-        // System stats usually need more frequent updates than health (e.g. 5-10s)
         const interval = setInterval(refreshStats, 5000);
         return () => clearInterval(interval);
     }, [refreshStats]);

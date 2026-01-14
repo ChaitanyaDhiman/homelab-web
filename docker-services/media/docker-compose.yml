@@ -1,0 +1,100 @@
+# ----------------------------
+# Docker Compose file for Docker Services - Homelab Web
+# Services: Prowlarr, Qbittorrent, Sonarr, Radarr, Jellyseerr
+# ----------------------------
+services:
+  # --- INDEXER MANAGER (The "Brain" for Trackers) ---
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Kolkata
+    volumes:
+      - /srv/docker-data/prowlarr/config:/config
+    ports:
+      - "9696:9696"
+    restart: unless-stopped
+    networks:
+      - proxy_net
+
+  # --- DOWNLOAD CLIENT ---
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Kolkata
+      - WEBUI_PORT=8080
+    volumes:
+      - /srv/docker-data/qbittorrent/config:/config
+      - /mnt/media:/data
+    ports:
+      - "8080:8080" # Web UI
+      - "6881:6881" # TCP Data Port
+      - "6881:6881/udp" # UDP Data Port
+    restart: unless-stopped
+    networks:
+      - proxy_net
+
+  # --- TV SHOWS ---
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Kolkata
+    volumes:
+      - /srv/docker-data/sonarr/config:/config
+      - /mnt/media:/data
+    ports:
+      - "8989:8989"
+    depends_on:
+      - prowlarr
+      - qbittorrent
+    restart: unless-stopped
+    networks:
+      - proxy_net
+
+  # --- MOVIES ---
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Kolkata
+    volumes:
+      - /srv/docker-data/radarr/config:/config
+      - /mnt/media:/data
+    ports:
+      - "7878:7878"
+    depends_on:
+      - prowlarr
+      - qbittorrent
+    restart: unless-stopped
+    networks:
+      - proxy_net
+
+  # --- REQUESTS UI (Netflix-style interface) ---
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Kolkata
+    volumes:
+      - /srv/docker-data/jellyseerr/config:/app/config
+    ports:
+      - "5055:5055"
+    restart: unless-stopped
+    networks:
+      - proxy_net
+
+networks:
+  proxy_net:
+    external: true

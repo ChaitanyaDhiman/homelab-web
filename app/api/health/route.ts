@@ -3,13 +3,11 @@ import { services } from '@/app/config/services';
 
 export const dynamic = 'force-dynamic';
 
-// Allow self-signed certificates for internal Docker health checks
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 export async function GET() {
     const statusPromises = services.map(async (service) => {
         let envKey = `INTERNAL_SERVICE_${service.id.replace(/-/g, '').toUpperCase()}_URL`;
-        // Special case handling if naming differs
         if (service.id === 'nginx-proxy-manager') envKey = 'INTERNAL_SERVICE_NPM_URL';
 
         const internalUrl = process.env[envKey];
@@ -40,13 +38,10 @@ export async function GET() {
 
         try {
             try {
-                // Attempt 1: Internal URL (Short 2s timeout for speed)
                 await tryCheck(targetUrl, 2000);
             } catch (internalError) {
-                // If Internal fails and differs from Public, try Public
                 if (targetUrl !== service.url && service.url && !service.url.startsWith('/')) {
                     usedFallback = true;
-                    // Attempt 2: Public URL (Remaining 3s timeout)
                     await tryCheck(service.url, 3000);
                 } else {
                     throw internalError;
@@ -66,7 +61,6 @@ export async function GET() {
 
     const results = await Promise.all(statusPromises);
 
-    // Convert array to object map by ID
     const data = results.reduce((acc, curr) => {
         acc[curr.id] = {
             status: curr.status,

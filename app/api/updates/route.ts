@@ -26,7 +26,6 @@ interface UpgradeInfo {
     securityPackages: string[];
 }
 
-// Helper function to safely execute commands and parse output
 async function safeExec(command: string, fallback: string = ''): Promise<string> {
     try {
         const { stdout } = await execAsync(command);
@@ -38,15 +37,12 @@ async function safeExec(command: string, fallback: string = ''): Promise<string>
 
 async function getUpgradeInfo(): Promise<UpgradeInfo> {
     try {
-        // Check if running inside Docker
         const isDocker = fs.existsSync('/.dockerenv');
 
         if (!isDocker) {
-            // On host, update the package lists
             await execAsync('apt-get update 2>/dev/null || true');
         }
 
-        // Single call to apt-get upgrade --dry-run
         const upgradeOutput = await safeExec(
             'apt-get upgrade --dry-run 2>/dev/null | grep "^Inst"'
         );
@@ -60,13 +56,11 @@ async function getUpgradeInfo(): Promise<UpgradeInfo> {
         const securityPackages: string[] = [];
 
         for (const line of lines) {
-            // Extract package name (second field in "Inst package_name ...")
             const match = line.match(/^Inst\s+(\S+)/);
             if (match) {
                 const packageName = match[1];
                 allPackages.push(packageName);
 
-                // Check if it's a security update
                 if (line.toLowerCase().includes('security')) {
                     securityPackages.push(packageName);
                 }
@@ -85,20 +79,19 @@ async function getUpgradeInfo(): Promise<UpgradeInfo> {
 }
 
 async function checkRebootRequired(): Promise<{ required: boolean; packages: string[] }> {
-    const rebootFile = '/var/run/reboot-required';
-    const rebootPkgsFile = '/var/run/reboot-required.pkgs';
+    const isDocker = fs.existsSync('/.dockerenv');
+    const basePath = isDocker ? '/host/var/run' : '/var/run';
+    const rebootFile = `${basePath}/reboot-required`;
+    const rebootPkgsFile = `${basePath}/reboot-required.pkgs`;
 
-    // Check if reboot-required exists and is a file
     try {
         if (!fs.existsSync(rebootFile) || !fs.statSync(rebootFile).isFile()) {
             return { required: false, packages: [] };
         }
     } catch {
-        // File doesn't exist or access denied
         return { required: false, packages: [] };
     }
 
-    // Reboot is required, try to get the package list
     try {
         const packagesContent = await safeExec(`cat ${rebootPkgsFile} 2>/dev/null`);
         return {
@@ -140,7 +133,6 @@ async function getLastUpdateLog(): Promise<string[]> {
 }
 
 async function getLastUpdateTime(): Promise<string | null> {
-    // Check multiple possible timestamps for when apt update was last run
     const timestamp = await safeExec(
         'stat -c %y /var/lib/apt/periodic/update-success-stamp 2>/dev/null || ' +
         'stat -c %y /var/cache/apt/pkgcache.bin 2>/dev/null || ' +

@@ -38,7 +38,6 @@ export function UpdateStatus() {
         };
 
         fetchData();
-        // Refresh every 5 minutes
         const interval = setInterval(fetchData, 300000);
         return () => clearInterval(interval);
     }, []);
@@ -47,9 +46,7 @@ export function UpdateStatus() {
         if (!timestamp) return 'Checking for updates...';
 
         let date = new Date(timestamp);
-        // Safari/iOS fixes
         if (isNaN(date.getTime())) {
-            // Replace dashes with slashes for "YYYY-MM-DD HH:MM:SS" format support in Safari
             date = new Date(timestamp.replace(/-/g, '/'));
         }
 

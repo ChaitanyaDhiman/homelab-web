@@ -44,7 +44,7 @@ export function HealthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         refreshHealth();
-        const interval = setInterval(refreshHealth, 30000); // 30s interval
+        const interval = setInterval(refreshHealth, 30000);
         return () => clearInterval(interval);
     }, [refreshHealth]);
 

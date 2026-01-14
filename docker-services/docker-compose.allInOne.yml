@@ -1,19 +1,30 @@
-# ----------------------------
-# Docker Compose file for Docker Services - Homelab Web
-# Services: Nginx Proxy Manager, Pi-hole, Open WebUI, Portainer, Plex
-# ----------------------------
+# ============================================
+# Docker Compose - All Services Combined
+# Homelab Web Dashboard
+# ============================================
+# Services:
+#   Network: Nginx Proxy Manager, Pi-hole
+#   Media Streaming: Plex, Jellyfin
+#   Media Management: Sonarr, Radarr, Prowlarr, Jellyseerr, qBittorrent
+#   Photos: Immich
+#   AI: Open WebUI
+#   Storage: Filebrowser
+#   System: Portainer, Watchtower
+# ============================================
 
-# ----------------------------
-# NETWORKS
-# ----------------------------
 networks:
   proxy_net:
     driver: bridge
 
+volumes:
+  immich-model-cache:
+
+
 services:
-  # ----------------------------
-  # NGINX PROXY MANAGER
-  # ----------------------------
+  # ============================================
+  # NETWORK SERVICES
+  # ============================================
+
   nginx-proxy-manager:
     image: jc21/nginx-proxy-manager:latest
     container_name: nginx_proxy_manager
@@ -21,16 +32,13 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "82:81"      # NPM admin UI
+      - "82:81"
     volumes:
       - /srv/docker-data/npm/data:/data
       - /srv/docker-data/npm/letsencrypt:/etc/letsencrypt
     networks:
       - proxy_net
 
-  # ----------------------------
-  # PI-HOLE (DNS ONLY)
-  # ----------------------------
   pihole:
     image: pihole/pihole:latest
     container_name: pihole
@@ -51,9 +59,197 @@ services:
     networks:
       - proxy_net
 
-  # ----------------------------
-  # OPEN WEBUI
-  # ----------------------------
+  # ============================================
+  # MEDIA STREAMING
+  # ============================================
+
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Kolkata
+    volumes:
+      - /srv/docker-data/plex/config:/config
+      - /mnt/media:/media
+
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Kolkata
+    volumes:
+      - /srv/docker-data/jellyfin/config:/config
+      - /srv/docker-data/jellyfin/cache:/cache
+      - /mnt/media:/media
+    ports:
+      - "8096:8096"
+    networks:
+      - proxy_net
+
+  # ============================================
+  # MEDIA MANAGEMENT (ARR STACK)
+  # ============================================
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Kolkata
+    volumes:
+      - /srv/docker-data/prowlarr/config:/config
+    ports:
+      - "9696:9696"
+    networks:
+      - proxy_net
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Kolkata
+      - WEBUI_PORT=8080
+    volumes:
+      - /srv/docker-data/qbittorrent/config:/config
+      - /mnt/media:/data
+    ports:
+      - "8080:8080"
+      - "6881:6881"
+      - "6881:6881/udp"
+    networks:
+      - proxy_net
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Kolkata
+    volumes:
+      - /srv/docker-data/sonarr/config:/config
+      - /mnt/media:/data
+    ports:
+      - "8989:8989"
+    depends_on:
+      - prowlarr
+      - qbittorrent
+    networks:
+      - proxy_net
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Kolkata
+    volumes:
+      - /srv/docker-data/radarr/config:/config
+      - /mnt/media:/data
+    ports:
+      - "7878:7878"
+    depends_on:
+      - prowlarr
+      - qbittorrent
+    networks:
+      - proxy_net
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Kolkata
+    volumes:
+      - /srv/docker-data/jellyseerr/config:/app/config
+    ports:
+      - "5055:5055"
+    networks:
+      - proxy_net
+
+  # ============================================
+  # PHOTOS - IMMICH
+  # ============================================
+
+  immich-server:
+    image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
+    container_name: immich_server
+    restart: always
+    env_file:
+      - docker-services/immich/.env
+    volumes:
+      - ${UPLOAD_LOCATION:-/srv/docker-data/immich/upload}:/usr/src/app/upload
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "2283:2283"
+    depends_on:
+      - immich-redis
+      - immich-database
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu, video, utility ]
+    networks:
+      - proxy_net
+
+  immich-machine-learning:
+    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}-cuda
+    container_name: immich_machine_learning
+    restart: always
+    env_file:
+      - docker-services/immich/.env
+    volumes:
+      - immich-model-cache:/cache
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    networks:
+      - proxy_net
+
+  immich-redis:
+    image: docker.io/redis:6.2-alpine
+    container_name: immich_redis
+    restart: always
+    networks:
+      - proxy_net
+
+  immich-database:
+    image: docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0
+    container_name: immich_postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${IMMICH_DB_PASSWORD:-postgres}
+      POSTGRES_USER: postgres
+      POSTGRES_DB: immich
+    volumes:
+      - /srv/docker-data/immich/postgres_data:/var/lib/postgresql/data
+    networks:
+      - proxy_net
+
+  # ============================================
+  # AI SERVICES
+  # ============================================
+
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
@@ -65,9 +261,31 @@ services:
     networks:
       - proxy_net
 
-  # ----------------------------
-  # PORTAINER
-  # ----------------------------
+  # ============================================
+  # STORAGE
+  # ============================================
+
+  filebrowser:
+    image: filebrowser/filebrowser:latest
+    container_name: filebrowser
+    restart: unless-stopped
+    user: "1000:1000"
+    ports:
+      - "8085:80"
+    volumes:
+      - /mnt/cloud:/srv/cloud_storage
+      - /mnt/media:/srv/media_drive
+      - /srv/docker-data/filebrowser/filebrowser.db:/database/filebrowser.db
+    environment:
+      - PUID=1000
+      - PGID=1000
+    networks:
+      - proxy_net
+
+  # ============================================
+  # SYSTEM MANAGEMENT
+  # ============================================
+
   portainer:
     image: portainer/portainer-ce:latest
     container_name: portainer
@@ -80,17 +298,24 @@ services:
     networks:
       - proxy_net
 
-  # ----------------------------
-  # PLEX (HOST NETWORK)
-  # ----------------------------
-  plex:
-    image: lscr.io/linuxserver/plex:latest
-    container_name: plex
-    network_mode: host
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
     restart: unless-stopped
-    environment:
-      - TZ=Asia/Kolkata
     volumes:
-      - /srv/docker-data/plex/config:/config
-      - /srv/docker-data/plex/media:/media
-
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /srv/docker-data/watchtower:/config
+    environment:
+      - DOCKER_API_VERSION=1.44
+      - WATCHTOWER_SCHEDULE=0 0 3 * * 0
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_INCLUDE_STOPPED=true
+      - WATCHTOWER_ROLLING_RESTART=true
+      - WATCHTOWER_TIMEOUT=60s
+      - WATCHTOWER_NOTIFICATIONS_LEVEL=info
+      - WATCHTOWER_LOG_LEVEL=info
+      - TZ=Asia/Kolkata
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - proxy_net
