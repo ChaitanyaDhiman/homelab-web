@@ -29,14 +29,30 @@ This project includes two main components:
 
 ### Included Services
 
-- **Nginx Proxy Manager** - Reverse proxy with SSL/TLS management
-- **Pi-hole** - Network-wide ad blocking and DNS server
-- **Open WebUI** - Web interface for AI/LLM interactions
-- **Portainer** - Docker container management UI
+**Media Streaming:**
 - **Plex Media Server** - Media streaming server
 - **Jellyfin** - Open-source media streaming server
-- **Filebrowser** - Web-based file manager for your drives
+
+**Media Management (ARR Stack):**
+- **Sonarr** - TV show collection manager
+- **Radarr** - Movie collection manager
+- **Prowlarr** - Indexer manager for Sonarr/Radarr
+- **qBittorrent** - Torrent download client
+- **Jellyseerr** - Media request manager
+
+**Photos & Storage:**
 - **Immich** - Self-hosted photo and video management
+- **Filebrowser** - Web-based file manager for your drives
+
+**Network:**
+- **Nginx Proxy Manager** - Reverse proxy with SSL/TLS management
+- **Pi-hole** - Network-wide ad blocking and DNS server
+
+**AI:**
+- **Open WebUI** - Web interface for AI/LLM interactions
+
+**System:**
+- **Portainer** - Docker container management UI
 - **Cockpit** - Web-based server administration interface
 - **Watchtower** - Automated Docker container updates (scheduled weekly on Sundays at 3 AM)
 
@@ -206,7 +222,7 @@ homelab-web/
        description: "Description of the app",
        url: process.env.NEXT_PUBLIC_SERVICE_NEWAPP_URL || "/unavailable?service=new-app",
        icon: Layout,
-       category: "system", // 'media' | 'system' | 'dev' | 'network' | 'ai' | 'storage'
+       category: "system", // 'media' | 'system' | 'dev' | 'network' | 'ai' | 'storage' | 'media management'
        status: "online",
      },
    ];

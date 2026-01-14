@@ -85,6 +85,35 @@ All services communicate via a shared Docker network called `proxy_net`.
   - Rolling restarts
   - Per-container control via labels
 
+## 📺 Media Management (ARR Stack)
+
+### 🔍 Prowlarr
+- **Purpose**: Indexer manager for Sonarr/Radarr
+- **Port**: `9696`
+- **Network**: Connected to `proxy_net`
+
+### 📥 qBittorrent
+- **Purpose**: Torrent download client
+- **Ports**: `8080` (WebUI), `6881` (TCP/UDP Data)
+- **Network**: Connected to `proxy_net`
+
+### 📺 Sonarr
+- **Purpose**: TV show collection manager
+- **Port**: `8989`
+- **Depends On**: Prowlarr, qBittorrent
+- **Network**: Connected to `proxy_net`
+
+### 🎬 Radarr
+- **Purpose**: Movie collection manager
+- **Port**: `7878`
+- **Depends On**: Prowlarr, qBittorrent
+- **Network**: Connected to `proxy_net`
+
+### 🔔 Jellyseerr
+- **Purpose**: Media request manager (Netflix-style interface)
+- **Port**: `5055`
+- **Network**: Connected to `proxy_net`
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -112,7 +141,14 @@ See [network/README.md](./network/README.md) for detailed networking documentati
 
 ### Option 1: All-in-One Deployment
 
-Deploy core services (NPM, Pi-hole, Open WebUI, Portainer, Plex) with a single command.
+Deploy all services with a single command. The `docker-compose.allInOne.yml` includes:
+- **Network**: Nginx Proxy Manager, Pi-hole
+- **Media Streaming**: Plex, Jellyfin
+- **Media Management**: Sonarr, Radarr, Prowlarr, qBittorrent, Jellyseerr
+- **Photos**: Immich (server, ML, Redis, PostgreSQL)
+- **AI**: Open WebUI
+- **Storage**: Filebrowser
+- **System**: Portainer, Watchtower
 
 #### Without Environment Variables
 ```bash
@@ -228,10 +264,6 @@ docker-services/
 │   └── docker-compose.yml
 ├── portainer/                          # Portainer
 │   └── docker-compose.yml
-├── plex/                               # Plex Media Server
-│   └── docker-compose.yml
-├── jellyfish/                          # Jellyfin Media Server
-│   └── docker-compose.yml
 ├── filebrowser/                        # Filebrowser
 │   └── docker-compose.yml
 ├── immich/                             # Immich Photo Management
@@ -239,8 +271,10 @@ docker-services/
 │   └── .env                            # Immich config
 ├── cockpit/                            # Cockpit Server Admin
 │   └── docker-compose.yml
-└── watchtower/                         # Watchtower Auto-Updates
-    └── docker-compose.yml
+├── watchtower/                         # Watchtower Auto-Updates
+│   └── docker-compose.yml
+└── media/                              # Media Management Stack
+    └── docker-compose.yml              # Prowlarr, Sonarr, Radarr, qBittorrent, Jellyseerr
 ```
 
 ## 🔧 Management Commands
@@ -355,6 +389,11 @@ All services (except Plex and Immich) connect to the external `proxy_net` bridge
 | Jellyfin | `jellyfin` | 8096 |
 | Filebrowser | `filebrowser` | 80 |
 | Cockpit | `cockpit` | 4200 |
+| Prowlarr | `prowlarr` | 9696 |
+| qBittorrent | `qbittorrent` | 8080 |
+| Sonarr | `sonarr` | 8989 |
+| Radarr | `radarr` | 7878 |
+| Jellyseerr | `jellyseerr` | 5055 |
 
 ### Services NOT on proxy_net
 
@@ -377,6 +416,11 @@ Configure these in Nginx Proxy Manager:
 | Cockpit | `cockpit.yourdomain.com` | `cockpit` | `4200` | `https` |
 | Plex | `plex.yourdomain.com` | `<host-ip>` | `32400` | `http` |
 | Immich | `photos.yourdomain.com` | `<host-ip>` | `2283` | `http` |
+| Prowlarr | `prowlarr.yourdomain.com` | `prowlarr` | `9696` | `http` |
+| qBittorrent | `qbit.yourdomain.com` | `qbittorrent` | `8080` | `http` |
+| Sonarr | `sonarr.yourdomain.com` | `sonarr` | `8989` | `http` |
+| Radarr | `radarr.yourdomain.com` | `radarr` | `7878` | `http` |
+| Jellyseerr | `request.yourdomain.com` | `jellyseerr` | `5055` | `http` |
 
 ## 🔐 Environment Variables
 
