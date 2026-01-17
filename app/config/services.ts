@@ -7,7 +7,7 @@ export interface Service {
     description: string;
     url: string;
     icon: any; // Lucide icon
-    category: "media" | "system" | "dev" | "network" | "ai" | "storage" | "media management";
+    category: "media" | "system" | "dev" | "network" | "ai" | "storage" | "media management" | "monitoring";
     status?: "online" | "offline" | "unknown";
 }
 
@@ -118,6 +118,15 @@ export const services: Service[] = [
         url: process.env.NEXT_PUBLIC_SERVICE_PROWLARR_URL || "/unavailable?service=prowlarr",
         icon: Search,
         category: "media management",
+        status: "online",
+    },
+    {
+        id: "beszel",
+        name: "Beszel",
+        description: "System Monitoring",
+        url: process.env.NEXT_PUBLIC_SERVICE_BESZEL_URL || "/unavailable?service=beszel",
+        icon: Activity,
+        category: "monitoring",
         status: "online",
     },
     {

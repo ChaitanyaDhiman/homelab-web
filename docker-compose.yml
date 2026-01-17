@@ -23,6 +23,7 @@ services:
     volumes:
       - /var/lib/apt/lists:/var/lib/apt/lists:ro
       - /var/lib/dpkg/status:/var/lib/dpkg/status:ro
+      - /var/cache/apt:/var/cache/apt:ro
       - /etc/apt:/etc/apt:ro
       - /var/run:/host/var/run:ro
       - /var/log/unattended-upgrades:/var/log/unattended-upgrades:ro

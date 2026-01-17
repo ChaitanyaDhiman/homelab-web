@@ -39,12 +39,17 @@ async function getUpgradeInfo(): Promise<UpgradeInfo> {
     try {
         const isDocker = fs.existsSync('/.dockerenv');
 
+        // In Docker, use the host's root filesystem for apt operations
+        const aptOptions = isDocker
+            ? '-o Dir::State=/var/lib/apt -o Dir::State::status=/var/lib/dpkg/status -o Dir::Etc=/etc/apt -o Dir::Cache=/var/cache/apt'
+            : '';
+
         if (!isDocker) {
             await execAsync('apt-get update 2>/dev/null || true');
         }
 
         const upgradeOutput = await safeExec(
-            'apt-get upgrade --dry-run 2>/dev/null | grep "^Inst"'
+            `apt-get ${aptOptions} upgrade --dry-run 2>/dev/null | grep "^Inst"`
         );
 
         if (!upgradeOutput) {

@@ -10,6 +10,7 @@ services:
   jellyfin:
     image: jellyfin/jellyfin:latest
     container_name: jellyfin
+    runtime: nvidia
     restart: unless-stopped
     networks:
       - proxy_net
@@ -29,13 +30,14 @@ services:
       - TZ=Asia/Kolkata
       - JELLYFIN_PublishedServerUrl=http://192.168.29.197:8096
       - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all 
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
-              count: all
-              capabilities: [ gpu ]
+              count: 1
+              capabilities: [gpu, video, utility]
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
 

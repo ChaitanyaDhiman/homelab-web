@@ -85,6 +85,20 @@ All services communicate via a shared Docker network called `proxy_net`.
   - Rolling restarts
   - Per-container control via labels
 
+### 📊 Beszel
+- **Purpose**: Lightweight server monitoring with beautiful dashboards
+- **Port**: `8090`
+- **Network Mode**: `bridge` (default) - NOT on `proxy_net`
+- **Access**: `http://<host-ip>:8090` or `http://localhost:8090`
+- **Components**:
+  - `beszel` - Main monitoring server
+  - `beszel-agent` - Host agent with NVIDIA GPU support
+- **Features**:
+  - Real-time CPU, memory, disk, and network monitoring
+  - GPU monitoring (NVIDIA)
+  - Docker container stats
+  - Multiple filesystem tracking
+
 ## 📺 Media Management (ARR Stack)
 
 ### 🔍 Prowlarr
@@ -273,6 +287,9 @@ docker-services/
 │   └── docker-compose.yml
 ├── watchtower/                         # Watchtower Auto-Updates
 │   └── docker-compose.yml
+├── monitoring/                         # System Monitoring (Beszel)
+│   ├── docker-compose.yml
+│   └── .env                            # BESZEL_KEY
 └── media/                              # Media Management Stack
     └── docker-compose.yml              # Prowlarr, Sonarr, Radarr, qBittorrent, Jellyseerr
 ```
@@ -401,6 +418,8 @@ All services (except Plex and Immich) connect to the external `proxy_net` bridge
 |---------|-------------|--------|
 | Plex | `host` | DLNA discovery, streaming performance |
 | Immich | `bridge` (isolated) | Default stack configuration |
+| Beszel | `bridge` (default) | Standalone monitoring stack |
+| Beszel Agent | `host` | Full system access for monitoring |
 
 ### Recommended Proxy Host Setup
 

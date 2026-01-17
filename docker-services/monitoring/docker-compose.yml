@@ -1,0 +1,38 @@
+# ----------------------------
+# Docker Compose file for Docker Services - Homelab Web
+# Services: Monitoring
+# ----------------------------
+
+services:
+  beszel:
+    image: henrygd/beszel:latest
+    container_name: beszel
+    restart: unless-stopped
+    network_mode: bridge
+    ports:
+      - "8090:8090"
+    volumes:
+      - /srv/docker-data/monitoring/beszel_data:/beszel_data
+
+  beszel-agent:
+    image: henrygd/beszel-agent-nvidia:latest
+    container_name: beszel-agent
+    restart: unless-stopped
+    network_mode: host
+    runtime: nvidia
+    environment:
+      - PORT=45876
+      - KEY=${BESZEL_KEY}
+      - FILESYSTEM=(^sd[a-z]+|nvme\d+n\d+)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /:/rootfs:ro
+      - /mnt/media:/extra-filesystems/Media:ro
+      - /mnt/cloud:/extra-filesystems/Cloud:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]

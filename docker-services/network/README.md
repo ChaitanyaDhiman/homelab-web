@@ -82,6 +82,8 @@ Some services intentionally bypass Docker networking.
 | Cockpit (host install) | N/A | System-level management, runs on host |
 | Tailscale | host | Secure remote access |
 | Immich | bridge (isolated) | Default stack network, uses own compose network |
+| Beszel | bridge (default) | Standalone monitoring stack |
+| Beszel Agent | host | Full system/GPU access for monitoring |
 
 These services are accessed via:
 - Host IP directly
@@ -232,6 +234,14 @@ docker network create proxy_net
                     │  │  │  │Immich │ │Redis│ │PostgreSQL│ │     │   │
                     │  │  │  │ :2283 │ │     │ │          │ │     │   │
                     │  │  │  └───────┘ └─────┘ └──────────┘ │     │   │
+                    │  │  └─────────────────────────────────┘     │   │
+                    │  │                                          │   │
+                    │  │  ┌─────────────────────────────────┐     │   │
+                    │  │  │        bridge (default)          │     │   │
+                    │  │  │  ┌───────┐ ┌─────────────────┐  │     │   │
+                    │  │  │  │Beszel │ │  Beszel Agent   │  │     │   │
+                    │  │  │  │ :8090 │ │   (host mode)   │  │     │   │
+                    │  │  │  └───────┘ └─────────────────┘  │     │   │
                     │  │  └─────────────────────────────────┘     │   │
                     │  │                                          │   │
                     │  └──────────────────────────────────────────┘   │

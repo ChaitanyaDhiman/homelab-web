@@ -1,6 +1,6 @@
 # ----------------------------
 # Docker Compose file for Docker Services - Homelab Web
-# Services: Jellyfin
+# Services: Immich
 # ----------------------------
 
 services:
@@ -21,7 +21,7 @@ services:
           devices:
             - driver: nvidia
               count: 1
-              capabilities: [gpu, video, utility]
+              capabilities: [ gpu, video, utility ]
 
   immich-machine-learning:
     container_name: immich_machine_learning
@@ -35,11 +35,13 @@ services:
           devices:
             - driver: nvidia
               count: 1
-              capabilities: [gpu]
+              capabilities: [ gpu ]
 
   redis:
     container_name: immich_redis
     image: docker.io/redis:6.2-alpine
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
     restart: always
 
   database:
@@ -49,6 +51,8 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_USER: postgres
       POSTGRES_DB: immich
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
     volumes:
       - /srv/docker-data/immich/postgres_data:/var/lib/postgresql/data
     restart: always

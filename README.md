@@ -56,6 +56,9 @@ This project includes two main components:
 - **Cockpit** - Web-based server administration interface
 - **Watchtower** - Automated Docker container updates (scheduled weekly on Sundays at 3 AM)
 
+**Monitoring:**
+- **Beszel** - Lightweight server monitoring with beautiful dashboards and GPU support
+
 See the [docker-services README](./docker-services/README.md) for detailed documentation on these services.
 
 ## 🚀 Quick Start
@@ -95,6 +98,7 @@ See the [docker-services README](./docker-services/README.md) for detailed docum
    NEXT_PUBLIC_SERVICE_IMMICH_URL=http://192.168.xx.xx:2283
    NEXT_PUBLIC_SERVICE_COCKPIT_URL=http://192.168.xx.xx:9090
    NEXT_PUBLIC_SERVICE_NPM_URL=http://192.168.xx.xx:82
+   NEXT_PUBLIC_SERVICE_BESZEL_URL=http://192.168.xx.xx:8090
    # ... add your specific IPs/Ports
    ```
 
@@ -222,7 +226,7 @@ homelab-web/
        description: "Description of the app",
        url: process.env.NEXT_PUBLIC_SERVICE_NEWAPP_URL || "/unavailable?service=new-app",
        icon: Layout,
-       category: "system", // 'media' | 'system' | 'dev' | 'network' | 'ai' | 'storage' | 'media management'
+       category: "system", // 'media' | 'system' | 'dev' | 'network' | 'ai' | 'storage' | 'media management' | 'monitoring'
        status: "online",
      },
    ];

@@ -181,6 +181,42 @@ services:
       - proxy_net
 
   # ============================================
+  # MONITORING - BESZEL
+  # ============================================
+  beszel:
+    image: henrygd/beszel:latest
+    container_name: beszel
+    restart: unless-stopped
+    network_mode: bridge
+    ports:
+      - "8090:8090"
+    volumes:
+      - /srv/docker-data/monitoring/beszel_data:/beszel_data
+
+  beszel-agent:
+    image: henrygd/beszel-agent-nvidia:latest
+    container_name: beszel-agent
+    restart: unless-stopped
+    network_mode: host
+    runtime: nvidia
+    environment:
+      - PORT=45876
+      - KEY=${BESZEL_KEY}
+      - FILESYSTEM=(^sd[a-z]+|nvme\d+n\d+)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /:/rootfs:ro
+      - /mnt/media:/extra-filesystems/Media:ro
+      - /mnt/cloud:/extra-filesystems/Cloud:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  # ============================================
   # PHOTOS - IMMICH
   # ============================================
 
@@ -205,8 +241,6 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu, video, utility ]
-    networks:
-      - proxy_net
 
   immich-machine-learning:
     image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}-cuda
@@ -223,12 +257,12 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
-    networks:
-      - proxy_net
 
   immich-redis:
     image: docker.io/redis:6.2-alpine
     container_name: immich_redis
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
     restart: always
     networks:
       - proxy_net
@@ -241,10 +275,10 @@ services:
       POSTGRES_PASSWORD: ${IMMICH_DB_PASSWORD:-postgres}
       POSTGRES_USER: postgres
       POSTGRES_DB: immich
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
     volumes:
       - /srv/docker-data/immich/postgres_data:/var/lib/postgresql/data
-    networks:
-      - proxy_net
 
   # ============================================
   # AI SERVICES
