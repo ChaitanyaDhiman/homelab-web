@@ -27,8 +27,9 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /:/rootfs:ro
-      - /mnt/media:/extra-filesystems/Media:ro
-      - /mnt/cloud:/extra-filesystems/Cloud:ro
+      - /mnt/media:/extra-filesystems/sdc1__Media:ro
+      - /mnt/cloud:/extra-filesystems/sda1__Cloud:ro
+      - /mnt/backup:/extra-filesystems/sdg__Backup:ro
     deploy:
       resources:
         reservations:

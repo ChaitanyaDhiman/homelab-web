@@ -15,6 +15,7 @@ services:
       # Mapping your two external drives into the "srv" folder
       - /mnt/cloud:/srv/cloud_storage
       - /mnt/media:/srv/media_drive
+      - /mnt/backup:/srv/backup
       # Configuration and Database
       - ~/Documents/homelab-web/homelab-web/docker-services/filebrowser/filebrowser.db:/database/filebrowser.db
     environment:

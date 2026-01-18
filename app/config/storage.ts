@@ -36,4 +36,11 @@ export const storageDrives: StorageDrive[] = [
         mount: "/mnt/media",  // Change this to your actual media mount point
         icon: Film,
     },
+    {
+        id: "backup",
+        name: "backup",
+        label: "Backup Storage",
+        mount: "/mnt/backup",  // Change this to your actual backup mount point
+        icon: HardDrive,
+    }
 ];
