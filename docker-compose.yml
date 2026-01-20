@@ -26,7 +26,7 @@ services:
       - /var/cache/apt:/var/cache/apt:ro
       - /etc/apt:/etc/apt:ro
       - /var/run:/host/var/run:ro
-      - /var/log/unattended-upgrades:/var/log/unattended-upgrades:ro
+      - /var/log/update-check.log:/host/var/log/update-check.log:ro
       - /sys/class/power_supply:/sys/class/power_supply:ro
       # Storage monitoring - mount /proc to read host filesystem info
       - /proc:/host/proc:ro

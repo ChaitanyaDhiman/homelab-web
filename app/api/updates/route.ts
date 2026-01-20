@@ -110,22 +110,24 @@ async function checkRebootRequired(): Promise<{ required: boolean; packages: str
 
 async function getLastUpdateLog(): Promise<string[]> {
     const logs: string[] = [];
+    const isDocker = fs.existsSync('/.dockerenv');
+    const updateCheckLogPath = isDocker ? '/host/var/log/update-check.log' : '/var/log/update-check.log';
 
-    const [aptHistory, unattendedLogs, dpkgLogs] = await Promise.all([
+    const [aptHistory, dpkgLogs, updateCheckLogs] = await Promise.all([
         safeExec('grep -h "Commandline:" /var/log/apt/history.log 2>/dev/null | tail -n 5'),
-        safeExec('tail -n 10 /var/log/unattended-upgrades/unattended-upgrades.log 2>/dev/null | grep -E "INFO|WARNING|ERROR"'),
         safeExec('grep -E "status (installed|upgraded|removed)" /var/log/dpkg.log 2>/dev/null | tail -n 5'),
+        safeExec(`tail -n 10 ${updateCheckLogPath} 2>/dev/null`),
     ]);
 
-    if (aptHistory) {
-        logs.push('=== System APT Operations ===');
-        logs.push(...aptHistory.split('\n').filter(Boolean));
+    if (updateCheckLogs) {
+        logs.push('=== Update Check Service ===');
+        logs.push(...updateCheckLogs.split('\n').filter(Boolean));
     }
 
-    if (unattendedLogs) {
+    if (aptHistory) {
         if (logs.length > 0) logs.push('');
-        logs.push('=== Unattended Upgrades ===');
-        logs.push(...unattendedLogs.split('\n').filter(Boolean));
+        logs.push('=== System APT Operations ===');
+        logs.push(...aptHistory.split('\n').filter(Boolean));
     }
 
     if (dpkgLogs) {
@@ -170,6 +172,12 @@ export async function GET() {
             success: true,
             data: response,
             timestamp: new Date().toISOString(),
+        }, {
+            headers: {
+                'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+            },
         });
     } catch (error: any) {
         return NextResponse.json(
