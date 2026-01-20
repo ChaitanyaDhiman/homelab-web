@@ -2,11 +2,15 @@ import { NextResponse } from 'next/server';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs';
+import path from 'path';
 
 const execAsync = promisify(exec);
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+// Path to update status JSON from sidecar agent (Docker) or direct check (host)
+const UPDATE_STATUS_FILE = '/data/update-status.json';
 
 interface UpdateStatus {
     rebootRequired: boolean;
@@ -26,6 +30,13 @@ interface UpgradeInfo {
     securityPackages: string[];
 }
 
+interface AgentStatus {
+    upgrades: UpgradeInfo;
+    reboot: { required: boolean; packages: string[] };
+    lastUpdateCheck: string | null;
+    agentTimestamp: string;
+}
+
 async function safeExec(command: string, fallback: string = ''): Promise<string> {
     try {
         const { stdout } = await execAsync(command);
@@ -35,21 +46,42 @@ async function safeExec(command: string, fallback: string = ''): Promise<string>
     }
 }
 
-async function getUpgradeInfo(): Promise<UpgradeInfo> {
+/**
+ * Read update status from the sidecar agent's JSON file (Docker mode)
+ */
+function readAgentStatus(): AgentStatus | null {
     try {
-        const isDocker = fs.existsSync('/.dockerenv');
-
-        // In Docker, use the host's root filesystem for apt operations
-        const aptOptions = isDocker
-            ? '-o Dir::State=/var/lib/apt -o Dir::State::status=/var/lib/dpkg/status -o Dir::Etc=/etc/apt -o Dir::Cache=/var/cache/apt'
-            : '';
-
-        if (!isDocker) {
-            await execAsync('apt-get update 2>/dev/null || true');
+        if (!fs.existsSync(UPDATE_STATUS_FILE)) {
+            return null;
         }
+        const content = fs.readFileSync(UPDATE_STATUS_FILE, 'utf-8');
+        return JSON.parse(content) as AgentStatus;
+    } catch {
+        return null;
+    }
+}
 
+/**
+ * Get upgrade info - uses agent file in Docker, direct apt-get on host
+ */
+async function getUpgradeInfo(): Promise<UpgradeInfo> {
+    const isDocker = fs.existsSync('/.dockerenv');
+
+    // In Docker, read from sidecar agent's JSON file
+    if (isDocker) {
+        const agentStatus = readAgentStatus();
+        if (agentStatus) {
+            return agentStatus.upgrades;
+        }
+        // Fallback if agent hasn't written yet
+        return { total: 0, security: 0, allPackages: [], securityPackages: [] };
+    }
+
+    // On host, run apt-get directly
+    try {
+        await execAsync('apt-get update 2>/dev/null || true');
         const upgradeOutput = await safeExec(
-            `apt-get ${aptOptions} upgrade --dry-run 2>/dev/null | grep "^Inst"`
+            `apt-get upgrade --dry-run 2>/dev/null | grep "^Inst"`
         );
 
         if (!upgradeOutput) {
@@ -83,11 +115,39 @@ async function getUpgradeInfo(): Promise<UpgradeInfo> {
     }
 }
 
+/**
+ * Check if reboot is required - uses agent file in Docker, direct check on host
+ */
 async function checkRebootRequired(): Promise<{ required: boolean; packages: string[] }> {
     const isDocker = fs.existsSync('/.dockerenv');
-    const basePath = isDocker ? '/host/var/run' : '/var/run';
-    const rebootFile = `${basePath}/reboot-required`;
-    const rebootPkgsFile = `${basePath}/reboot-required.pkgs`;
+
+    // In Docker, read from sidecar agent's JSON file
+    if (isDocker) {
+        const agentStatus = readAgentStatus();
+        if (agentStatus) {
+            return agentStatus.reboot;
+        }
+        // Also check mounted /host/var/run as fallback
+        const rebootFile = '/host/var/run/reboot-required';
+        const rebootPkgsFile = '/host/var/run/reboot-required.pkgs';
+
+        try {
+            if (!fs.existsSync(rebootFile)) {
+                return { required: false, packages: [] };
+            }
+            const packagesContent = await safeExec(`cat ${rebootPkgsFile} 2>/dev/null`);
+            return {
+                required: true,
+                packages: packagesContent.split('\n').filter(Boolean),
+            };
+        } catch {
+            return { required: false, packages: [] };
+        }
+    }
+
+    // On host, check directly
+    const rebootFile = '/var/run/reboot-required';
+    const rebootPkgsFile = '/var/run/reboot-required.pkgs';
 
     try {
         if (!fs.existsSync(rebootFile) || !fs.statSync(rebootFile).isFile()) {
@@ -108,38 +168,38 @@ async function checkRebootRequired(): Promise<{ required: boolean; packages: str
     }
 }
 
+/**
+ * Get last update log entries
+ */
 async function getLastUpdateLog(): Promise<string[]> {
     const logs: string[] = [];
     const isDocker = fs.existsSync('/.dockerenv');
-    const updateCheckLogPath = isDocker ? '/host/var/log/update-check.log' : '/var/log/update-check.log';
 
-    const [aptHistory, dpkgLogs, updateCheckLogs] = await Promise.all([
-        safeExec('grep -h "Commandline:" /var/log/apt/history.log 2>/dev/null | tail -n 5'),
-        safeExec('grep -E "status (installed|upgraded|removed)" /var/log/dpkg.log 2>/dev/null | tail -n 5'),
-        safeExec(`tail -n 10 ${updateCheckLogPath} 2>/dev/null`),
-    ]);
-
-    if (updateCheckLogs) {
-        logs.push('=== Update Check Service ===');
-        logs.push(...updateCheckLogs.split('\n').filter(Boolean));
-    }
-
-    if (aptHistory) {
-        if (logs.length > 0) logs.push('');
-        logs.push('=== System APT Operations ===');
-        logs.push(...aptHistory.split('\n').filter(Boolean));
-    }
-
-    if (dpkgLogs) {
-        if (logs.length > 0) logs.push('');
-        logs.push('=== Recent Package Operations ===');
-        logs.push(...dpkgLogs.split('\n').filter(Boolean));
+    // In Docker, we can show agent timestamp
+    if (isDocker) {
+        const agentStatus = readAgentStatus();
+        if (agentStatus?.agentTimestamp) {
+            logs.push('=== Update Agent Status ===');
+            logs.push(`Last check: ${agentStatus.agentTimestamp}`);
+        }
     }
 
     return logs.length > 0 ? logs : ['No update logs available'];
 }
 
+/**
+ * Get the timestamp of last update check
+ */
 async function getLastUpdateTime(): Promise<string | null> {
+    const isDocker = fs.existsSync('/.dockerenv');
+
+    // In Docker, use agent's timestamp
+    if (isDocker) {
+        const agentStatus = readAgentStatus();
+        return agentStatus?.lastUpdateCheck || agentStatus?.agentTimestamp || null;
+    }
+
+    // On host, check apt timestamps
     const timestamp = await safeExec(
         'stat -c %y /var/lib/apt/periodic/update-success-stamp 2>/dev/null || ' +
         'stat -c %y /var/cache/apt/pkgcache.bin 2>/dev/null || ' +
@@ -179,11 +239,12 @@ export async function GET() {
                 'Expires': '0',
             },
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return NextResponse.json(
             {
                 success: false,
-                error: error.message,
+                error: errorMessage,
                 timestamp: new Date().toISOString(),
             },
             { status: 500 }

@@ -1,0 +1,31 @@
+#!/bin/bash
+# =============================================================================
+# 99-updates - SSH Login Update Status Notification
+# =============================================================================
+#
+# Description:
+#   Displays pending system update information when a user logs in via SSH.
+#   Shows the number of available package updates and a reboot reminder if
+#   a kernel update requires a system restart.
+#
+# Installation:
+#   Copy this file to /etc/update-motd.d/99-updates and make it executable:
+#     sudo cp 99-updates /etc/update-motd.d/99-updates
+#     sudo chmod +x /etc/update-motd.d/99-updates
+#
+# The script is automatically executed by PAM during SSH login to generate
+# dynamic MOTD (Message of the Day) content.
+# =============================================================================
+
+# Show update status on SSH login
+UPDATES=$(apt list --upgradable 2>/dev/null | grep -v "Listing" | wc -l)
+
+if [ $UPDATES -gt 0 ]; then
+    echo ""
+    echo "⚠️  $UPDATES package updates available"
+    echo "   Run 'sudo apt update && sudo apt upgrade' to update"
+    
+    if [ -f /var/run/reboot-required ]; then
+        echo "⚠️  Reboot required!"
+    fi
+fi

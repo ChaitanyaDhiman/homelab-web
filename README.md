@@ -305,17 +305,145 @@ The dashboard includes real-time system monitoring using a high-performance poll
 
 ## 🔄 System Update Monitoring
 
-The dashboard monitors host system updates managed by **Unattended Upgrades (APT)**:
+The dashboard monitors host system updates using a secure **sidecar container architecture**:
 
-- **Automated Management**: Leverages system-level `unattended-upgrades` to keep the host OS patched and secure.
+### Architecture
+
+```
+┌─────────────────────────────────────────┐
+│              Host System                │
+│  /var/lib/apt, /etc/apt (read-only)     │
+└─────────────────────────────────────────┘
+              │
+              ▼
+┌─────────────────────────────────────────┐
+│           update-agent                  │
+│       (sidecar container)               │
+│  - Checks for updates hourly            │
+│  - Writes status to shared volume       │
+└─────────────────────────────────────────┘
+              │
+              ▼
+┌─────────────────────────────────────────┐
+│        nextjs_dashboard                 │
+│  - Reads update status from JSON        │
+│  - Can trigger manual refresh           │
+└─────────────────────────────────────────┘
+```
+
+### Features
+
+- **Secure Design**: Only specific apt directories are mounted (not entire root filesystem)
 - **Urgency Awareness**: Badges change color based on urgency:
   - 🔴 **Critical**: Security updates available
   - 🟡 **Warning**: 5+ regular updates pending
   - 🔵 **Normal**: Pending minor updates
 - **Reboot Detection**: Clear visual alerts when a kernel or system reboot is required
-- **Deep Dive**: Click to expand for a detailed list of regular vs. security packages.
-- **Live Background Polish**: Download icon pulses when new updates are ready.
-- **Dashboard API**: Integrates via a dedicated `/api/updates` endpoint that surfaces real-time update metadata.
+- **Manual Refresh**: Click "Refresh Status" to trigger an immediate update check
+- **Deep Dive**: Expand to see detailed list of regular vs. security packages
+- **Live Animation**: Download icon pulses when updates are available
+
+### Configuration
+
+The update-agent check interval can be configured via environment variable:
+
+```yaml
+environment:
+  - CHECK_INTERVAL_SECONDS=3600  # Default: 1 hour
+```
+
+## 📡 API Documentation
+
+The dashboard exposes several API endpoints for system monitoring:
+
+### System Stats
+
+**`GET /api/system`**
+
+Returns real-time system information including CPU, RAM, GPU, temperature, and uptime.
+
+```json
+{
+  "success": true,
+  "data": {
+    "cpu": { "usage": 15.2, "model": "Intel i7-12700", "cores": 12 },
+    "memory": { "total": 32000000000, "used": 12000000000, "percentage": 37.5 },
+    "gpu": { "name": "NVIDIA RTX 3080", "utilization": 5, "temperature": 45 },
+    "temperature": { "main": 52 },
+    "uptime": 345600
+  }
+}
+```
+
+---
+
+### Health Checks
+
+**`GET /api/health`**
+
+Returns health status for all configured services.
+
+```json
+{
+  "success": true,
+  "data": {
+    "plex": { "status": "online", "responseTime": 124, "usedFallback": false },
+    "jellyfin": { "status": "online", "responseTime": 89, "usedFallback": false }
+  }
+}
+```
+
+---
+
+### Storage
+
+**`GET /api/storage`**
+
+Returns storage information for configured drives.
+
+```json
+{
+  "success": true,
+  "data": {
+    "drives": [
+      { "id": "main", "label": "Main Storage", "mount": "/", "total": 500000000000, "used": 200000000000, "percentage": 40, "found": true }
+    ]
+  }
+}
+```
+
+---
+
+### Updates
+
+**`GET /api/updates`**
+
+Returns system update status (available packages, security updates, reboot status).
+
+```json
+{
+  "success": true,
+  "data": {
+    "rebootRequired": false,
+    "updatesAvailable": 5,
+    "securityUpdates": 2,
+    "updatePackages": ["pkg1", "pkg2"],
+    "securityPackagesList": ["pkg1"],
+    "lastUpdateCheck": "2026-01-21T00:00:00Z"
+  }
+}
+```
+
+**`POST /api/updates/refresh`**
+
+Triggers an immediate update status refresh (Docker only).
+
+```json
+{
+  "success": true,
+  "message": "Refresh triggered - update check will run within seconds"
+}
+```
 
 ## 🏥 Service Health Monitoring
 

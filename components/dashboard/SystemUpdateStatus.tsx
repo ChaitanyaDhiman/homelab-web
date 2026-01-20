@@ -18,26 +18,50 @@ interface UpdateData {
 export function UpdateStatus() {
     const [data, setData] = useState<UpdateData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [expanded, setExpanded] = useState(false);
     const [showPackages, setShowPackages] = useState(false);
     const { timeFormat, dateFormat, getEffectiveTimeFormat } = useSettings();
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const res = await fetch('/api/updates', { cache: 'no-store' });
-                const json = await res.json();
-                if (json.success) {
-                    setData(json.data);
-                }
-            } catch (error) {
-                console.error('Failed to fetch update status:', error);
-            } finally {
-                setLoading(false);
+    const fetchData = async () => {
+        try {
+            const res = await fetch('/api/updates', { cache: 'no-store' });
+            const json = await res.json();
+            if (json.success) {
+                setData(json.data);
             }
-        };
+        } catch (error) {
+            console.error('Failed to fetch update status:', error);
+        }
+    };
 
-        fetchData();
+    const triggerRefresh = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (refreshing) return;
+
+        setRefreshing(true);
+        try {
+            // Trigger the update agent to run immediately
+            await fetch('/api/updates/refresh', { method: 'POST' });
+
+            // Wait for agent to process and update JSON
+            await new Promise(resolve => setTimeout(resolve, 3000));
+
+            // Fetch updated data
+            await fetchData();
+        } catch (error) {
+            console.error('Failed to trigger refresh:', error);
+        } finally {
+            setRefreshing(false);
+        }
+    };
+
+    useEffect(() => {
+        const init = async () => {
+            await fetchData();
+            setLoading(false);
+        };
+        init();
         const interval = setInterval(fetchData, 300000);
         return () => clearInterval(interval);
     }, []);
@@ -272,7 +296,16 @@ export function UpdateStatus() {
                                     )}
                                 </div>
 
-                                <div className={`text-right ${hasUpdates ? 'pt-2 border-t border-white/5' : ''}`}>
+                                <div className={`flex items-center justify-between gap-4 ${hasUpdates ? 'pt-2 border-t border-white/5' : ''}`}>
+                                    <button
+                                        onClick={triggerRefresh}
+                                        disabled={refreshing}
+                                        title="Re-reads the host's current update status. To check for new updates, run 'apt update' on the host."
+                                        className="flex items-center gap-2 text-xs text-blue-400 hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+                                        {refreshing ? 'Refreshing...' : 'Refresh Status'}
+                                    </button>
                                     <span className="text-xs text-gray-500">{formatLastChecked(data.lastUpdateCheck)}</span>
                                 </div>
                             </div>

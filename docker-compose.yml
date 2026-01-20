@@ -2,7 +2,7 @@ services:
   nextjs_dashboard:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     container_name: nextjs_dashboard
     restart: unless-stopped
     expose:
@@ -21,18 +21,43 @@ services:
               count: all
               capabilities: [ gpu ]
     volumes:
-      - /var/lib/apt/lists:/var/lib/apt/lists:ro
-      - /var/lib/dpkg/status:/var/lib/dpkg/status:ro
-      - /var/cache/apt:/var/cache/apt:ro
-      - /etc/apt:/etc/apt:ro
       - /var/run:/host/var/run:ro
-      - /var/log/update-check.log:/host/var/log/update-check.log:ro
       - /sys/class/power_supply:/sys/class/power_supply:ro
-      # Storage monitoring - mount /proc to read host filesystem info
       - /proc:/host/proc:ro
+      # Storage monitoring - mount configured drives
       - /:/host/root:ro
+      - /mnt:/host/root/mnt:ro
+      # Shared volume for update status (needs write access for trigger file)
+      - update-data:/data
+    depends_on:
+      - update-agent
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
+
+  update-agent:
+    build:
+      context: ./update-agent
+      dockerfile: dockerfile
+    container_name: update-agent
+    restart: unless-stopped
+    environment:
+      - UPDATE_STATUS_FILE=/data/update-status.json
+      - CHECK_INTERVAL_SECONDS=3600 # Check every hour
+    volumes:
+      # Mount only specific apt directories (not entire root)
+      - /var/lib/apt:/host/var/lib/apt:ro
+      - /var/lib/dpkg/status:/host/var/lib/dpkg/status:ro
+      - /var/cache/apt:/host/var/cache/apt:ro
+      - /etc/apt:/host/etc/apt:ro
+      - /var/run:/host/var/run:ro
+      # Shared volume for output
+      - update-data:/data
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
+volumes:
+  update-data:
+
 
 networks:
   proxy_net:
