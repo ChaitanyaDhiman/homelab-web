@@ -193,13 +193,11 @@ async function getLastUpdateLog(): Promise<string[]> {
 async function getLastUpdateTime(): Promise<string | null> {
     const isDocker = fs.existsSync('/.dockerenv');
 
-    // In Docker, use agent's timestamp
     if (isDocker) {
         const agentStatus = readAgentStatus();
-        return agentStatus?.lastUpdateCheck || agentStatus?.agentTimestamp || null;
+        return agentStatus?.lastUpdateCheck || null;
     }
 
-    // On host, check apt timestamps
     const timestamp = await safeExec(
         'stat -c %y /var/lib/apt/periodic/update-success-stamp 2>/dev/null || ' +
         'stat -c %y /var/cache/apt/pkgcache.bin 2>/dev/null || ' +

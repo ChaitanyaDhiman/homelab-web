@@ -334,14 +334,34 @@ The dashboard monitors host system updates using a secure **sidecar container ar
 ### Features
 
 - **Secure Design**: Only specific apt directories are mounted (not entire root filesystem)
+- **Real-Time Sync**: Optimized filesystem cache invalidation ensures container sees host changes immediately
+- **No Restart Required**: Manual refresh works without restarting containers (~6 seconds)
 - **Urgency Awareness**: Badges change color based on urgency:
   - 🔴 **Critical**: Security updates available
   - 🟡 **Warning**: 5+ regular updates pending
   - 🔵 **Normal**: Pending minor updates
 - **Reboot Detection**: Clear visual alerts when a kernel or system reboot is required
-- **Manual Refresh**: Click "Refresh Status" to trigger an immediate update check
+- **Manual Refresh**: Click "Refresh Status" to trigger an immediate update check (~7s)
 - **Deep Dive**: Expand to see detailed list of regular vs. security packages
 - **Live Animation**: Download icon pulses when updates are available
+
+### How It Works
+
+1. **Update-agent** mounts host apt directories (read-only) and checks for updates hourly
+2. When you click **"Refresh Status"**:
+   - Creates a trigger file in the shared volume
+   - Agent detects trigger within 2 seconds
+   - Invalidates filesystem cache using `os.stat()` to see fresh host data
+   - Runs `apt-get upgrade --dry-run` against host's package state (~4s)
+   - Writes updated status to shared JSON file
+   - Dashboard fetches and displays new data
+3. **No container restart needed** - bind mounts update in real-time
+
+### Timestamps
+
+- **Last checked**: Shows when `apt update` was last run on the **host** (package cache freshness)
+- **Agent last ran**: Internal timestamp (not displayed in UI)
+- To get truly fresh package data, run `sudo apt update` on the host first
 
 ### Configuration
 

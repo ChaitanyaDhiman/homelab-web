@@ -41,13 +41,11 @@ export function UpdateStatus() {
 
         setRefreshing(true);
         try {
-            // Trigger the update agent to run immediately
             await fetch('/api/updates/refresh', { method: 'POST' });
 
-            // Wait for agent to process and update JSON
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            // Wait for agent to complete check (~6s)
+            await new Promise(resolve => setTimeout(resolve, 7000));
 
-            // Fetch updated data
             await fetchData();
         } catch (error) {
             console.error('Failed to trigger refresh:', error);

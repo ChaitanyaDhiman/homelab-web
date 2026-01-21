@@ -39,8 +39,23 @@ def run_command(cmd: str) -> tuple[int, str, str]:
         return 1, '', str(e)
 
 
+def sync_filesystem() -> None:
+    """Force kernel to invalidate directory cache for bind-mounted apt directories."""
+    try:
+        lists_path = Path('/host/var/lib/apt/lists')
+        if lists_path.exists():
+            os.stat(lists_path)
+    except Exception:
+        pass
+
+
 def get_upgrade_info() -> dict:
     """Check for available package upgrades."""
+    # CRITICAL: Sync filesystem to ensure bind mounts reflect latest host changes
+    # Without this, the container may see stale directory entries even after
+    # the host has run 'apt update'
+    sync_filesystem()
+    
     # Use apt-get with custom directories pointing to mounted host paths
     apt_options = (
         '-o Dir::State=/host/var/lib/apt '
