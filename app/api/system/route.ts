@@ -7,26 +7,86 @@ const execAsync = promisify(exec);
 
 export async function GET() {
     try {
-        const [cpu, mem, temp, time] = await Promise.all([
+        // Optimize: Fetch only essential data from systeminformation
+        const [cpu, mem, time] = await Promise.all([
             si.currentLoad(),
             si.mem(),
-            si.cpuTemperature(),
             si.time()
         ]);
 
-        const getFanSpeedLabel = (temperature: number): string => {
-            if (temperature < 45) return 'Off';
-            if (temperature < 60) return 'Low';
-            if (temperature < 75) return 'Mid';
-            if (temperature < 80) return 'High';
-            return 'Max';
-        };
+        // Get temperature and fan speed from sensors command (single call for both)
+        let fanSpeed = 'Off';
+        let avgTemp = 0;
+        let cpuCoreTemps: number[] = [];
 
-        const avgTemp = temp.cores.length > 0
-            ? Math.round(temp.cores.reduce((a, b) => a + b, 0) / temp.cores.length)
-            : temp.main;
+        try {
+            const { stdout: sensorsOutput } = await execAsync('sensors');
 
-        const fanSpeed = avgTemp > 0 ? getFanSpeedLabel(avgTemp) : 'Off';
+            // Parse CPU core temperatures
+            const coreMatches = sensorsOutput.matchAll(/Core\s+\d+:\s+\+?(\d+(?:\.\d+)?)/gi);
+            for (const match of coreMatches) {
+                const temp = parseFloat(match[1]);
+                if (!isNaN(temp)) {
+                    cpuCoreTemps.push(temp);
+                }
+            }
+
+            // Calculate average temperature from cores
+            if (cpuCoreTemps.length > 0) {
+                avgTemp = Math.round(cpuCoreTemps.reduce((a, b) => a + b, 0) / cpuCoreTemps.length);
+            } else {
+                // Fallback: try to get Package/CPU temperature
+                const packageMatch = sensorsOutput.match(/(?:Package id 0|CPU):\s+\+?(\d+(?:\.\d+)?)/i);
+                if (packageMatch) {
+                    avgTemp = Math.round(parseFloat(packageMatch[1]));
+                }
+            }
+
+            // Parse fan speed from dell_smm or other adapters
+            const fanMatch = sensorsOutput.match(/(?:Processor Fan|Video Fan|CPU Fan|System Fan):\s*(\d+)\s*RPM/i);
+
+            if (fanMatch) {
+                const rpm = parseInt(fanMatch[1]);
+
+                // Determine fan speed label based on RPM
+                if (rpm === 0) {
+                    fanSpeed = 'Off';
+                } else if (rpm < 2000) {
+                    fanSpeed = 'Low';
+                } else if (rpm < 3500) {
+                    fanSpeed = 'Mid';
+                } else if (rpm < 4500) {
+                    fanSpeed = 'High';
+                } else {
+                    fanSpeed = 'Max';
+                }
+            } else if (avgTemp > 0) {
+                // Fallback: estimate fan speed from temperature if RPM not available
+                if (avgTemp < 45) fanSpeed = 'Off';
+                else if (avgTemp < 60) fanSpeed = 'Low';
+                else if (avgTemp < 75) fanSpeed = 'Mid';
+                else if (avgTemp < 80) fanSpeed = 'High';
+                else fanSpeed = 'Max';
+            }
+        } catch (sensorError) {
+            console.error('Failed to read from sensors command:', sensorError);
+            // Fallback to systeminformation for temperature only
+            try {
+                const temp = await si.cpuTemperature();
+                avgTemp = temp.cores.length > 0
+                    ? Math.round(temp.cores.reduce((a, b) => a + b, 0) / temp.cores.length)
+                    : temp.main;
+
+                // Estimate fan speed from temperature
+                if (avgTemp < 45) fanSpeed = 'Off';
+                else if (avgTemp < 60) fanSpeed = 'Low';
+                else if (avgTemp < 75) fanSpeed = 'Mid';
+                else if (avgTemp < 80) fanSpeed = 'High';
+                else fanSpeed = 'Max';
+            } catch (tempError) {
+                console.error('Failed to read temperature:', tempError);
+            }
+        }
 
         let gpuData = {
             name: 'N/A',
