@@ -27,3 +27,4 @@ services:
       - /srv/docker-data/plex/media:/media
       - /mnt/media/Entertainment/Movies:/media/movies:ro
       - /mnt/media/Entertainment/Shows:/media/tvshows:ro
+      - /mnt/media/Entertainment/Anime:/media/anime:ro

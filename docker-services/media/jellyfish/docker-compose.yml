@@ -23,7 +23,8 @@ services:
       - /srv/docker-data/jellyfin/cache:/cache
       - /mnt/media/Entertainment/Movies:/media/movies:ro
       - /mnt/media/Entertainment/Shows:/media/tvshows:ro
-      - /mnt/media/Music:/media/music:ro
+      - /mnt/media/Entertainment/Anime:/media/anime:ro
+      - /mnt/media/Entertainment/Music:/media/music:ro
     environment:
       - PUID=1000
       - PGID=1000

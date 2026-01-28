@@ -15,6 +15,9 @@ services:
       - /srv/docker-data/prowlarr/config:/config
     ports:
       - "9696:9696"
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     restart: unless-stopped
     networks:
       - proxy_net
@@ -91,6 +94,19 @@ services:
       - /srv/docker-data/jellyseerr/config:/app/config
     ports:
       - "5055:5055"
+    restart: unless-stopped
+    networks:
+      - proxy_net
+
+  # --- Bypass anti-bot protections (cloudflare) ---
+  flaresolverr:
+    image: flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=info
+      - TZ=Asia/Kolkata
+    ports:
+      - "8191:8191"
     restart: unless-stopped
     networks:
       - proxy_net
