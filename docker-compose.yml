@@ -23,6 +23,7 @@ services:
     volumes:
       - /var/run:/host/var/run:ro
       - /sys/class/power_supply:/sys/class/power_supply:ro
+      - /sys/class/hwmon:/sys/class/hwmon:ro
       - /proc:/host/proc:ro
       # Storage monitoring - mount configured drives
       - /:/host/root:ro

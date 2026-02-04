@@ -1,0 +1,15 @@
+# ----------------------------
+# Docker Compose file for Docker Services - Homelab Web
+# Services: OpenSpeedtest
+# ----------------------------
+
+services:
+  openspeedtest:
+    container_name: openspeedtest
+    image: openspeedtest/latest
+    restart: unless-stopped
+    ports:
+      - "5001:3000"
+      - "5002:3001"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"

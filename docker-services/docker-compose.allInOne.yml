@@ -353,3 +353,13 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
       - proxy_net
+
+  openspeedtest:
+    container_name: openspeedtest
+    image: openspeedtest/latest
+    restart: unless-stopped
+    ports:
+      - "5001:3000"
+      - "5002:3001"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"

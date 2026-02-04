@@ -1,4 +1,4 @@
-import { Server, Activity, Database, Shield, Radio, Gauge, Cloud, Brain, File, HardDrive, Camera, Tv, Film, Download, Search, Bell } from "lucide-react";
+import { Server, Activity, Database, Shield, Radio, Gauge, Cloud, Brain, File, HardDrive, Camera, Tv, Film, Download, Search, Bell, Wifi } from "lucide-react";
 import { OllamaIcon } from "@/components/icons/OllamaIcon";
 
 export interface Service {
@@ -144,6 +144,15 @@ export const services: Service[] = [
         description: "Cockpit is a web-based graphical interface for servers",
         url: process.env.NEXT_PUBLIC_SERVICE_COCKPIT_URL || "/unavailable?service=cockpit",
         icon: Gauge,
+        category: "system",
+        status: "online"
+    },
+    {
+        id: "openspeedtest",
+        name: "OpenSpeedtest",
+        description: "OpenSpeedtest is a web-based speed test tool",
+        url: process.env.NEXT_PUBLIC_SERVICE_OPENSPEEDTEST_URL || "/unavailable?service=openspeedtest",
+        icon: Wifi,
         category: "system",
         status: "online"
     }
