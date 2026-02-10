@@ -16,8 +16,8 @@ services:
       - proxy_net
     expose:
       - "8096" # Expose port for initial setup (can remove later)
-    ports:
-      - "8096:8096"
+    #  ports:
+    #  - "8096:8096"
     volumes:
       - /srv/docker-data/jellyfin/config:/config
       - /srv/docker-data/jellyfin/cache:/cache

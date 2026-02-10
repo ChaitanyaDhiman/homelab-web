@@ -14,12 +14,14 @@ services:
     ports:
       - "53:53/tcp"
       - "53:53/udp"
-      - "8081:8081"   # Web Interface
+    #  - "8081:8081"   # Web Interface
     environment:
       TZ: "Asia/Kolkata"
       FTLCONF_dns_listeningMode: "ALL"
       FTLCONF_webserver_port: "8081"
       FTLCONF_webserver_api_password: ${PIHOLE_API_PASSWORD}
+      IPv6: true
+      FTLCONF_REPLY_ADDR6: fd00::197
     volumes:
       - /srv/docker/pihole/etc-pihole:/etc/pihole
       - /srv/docker/pihole/etc-dnsmasq.d:/etc/dnsmasq.d

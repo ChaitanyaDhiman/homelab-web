@@ -13,8 +13,8 @@ services:
       - TZ=Asia/Kolkata
     volumes:
       - /srv/docker-data/prowlarr/config:/config
-    ports:
-      - "9696:9696"
+    # ports:
+    #  - "9696:9696"
     dns:
       - 8.8.8.8
       - 1.1.1.1
@@ -35,7 +35,7 @@ services:
       - /srv/docker-data/qbittorrent/config:/config
       - /mnt/media:/data
     ports:
-      - "8080:8080" # Web UI
+    # - "8080:8080" # Web UI
       - "6881:6881" # TCP Data Port
       - "6881:6881/udp" # UDP Data Port
     restart: unless-stopped
@@ -53,8 +53,8 @@ services:
     volumes:
       - /srv/docker-data/sonarr/config:/config
       - /mnt/media:/data
-    ports:
-      - "8989:8989"
+    # ports:
+    # - "8989:8989"
     depends_on:
       - prowlarr
       - qbittorrent
@@ -73,8 +73,8 @@ services:
     volumes:
       - /srv/docker-data/radarr/config:/config
       - /mnt/media:/data
-    ports:
-      - "7878:7878"
+    # ports:
+    #  - "7878:7878"
     depends_on:
       - prowlarr
       - qbittorrent
@@ -92,8 +92,8 @@ services:
       - TZ=Asia/Kolkata
     volumes:
       - /srv/docker-data/jellyseerr/config:/app/config
-    ports:
-      - "5055:5055"
+    # ports:
+    #  - "5055:5055"
     restart: unless-stopped
     networks:
       - proxy_net
@@ -105,8 +105,8 @@ services:
     environment:
       - LOG_LEVEL=info
       - TZ=Asia/Kolkata
-    ports:
-      - "8191:8191"
+    # ports:
+    #  - "8191:8191"
     restart: unless-stopped
     networks:
       - proxy_net

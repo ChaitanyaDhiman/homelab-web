@@ -9,8 +9,8 @@ services:
     container_name: filebrowser
     restart: unless-stopped
     user: "1000:1000" # Ensures it runs with your user permissions
-    ports:
-      - "8085:80"
+    # ports:
+    #  - "8085:80"
     volumes:
       # Mapping your two external drives into the "srv" folder
       - /mnt/cloud:/srv/cloud_storage

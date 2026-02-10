@@ -8,8 +8,14 @@ services:
     container_name: openspeedtest
     image: openspeedtest/latest
     restart: unless-stopped
-    ports:
-      - "5001:3000"
-      - "5002:3001"
+    #  ports:
+    #  - "5001:3000"
+    #  - "5002:3001"
+    networks:
+      - proxy_net
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
+
+networks:
+  proxy_net:
+    external: true
