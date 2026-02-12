@@ -37,30 +37,33 @@ export function Sidebar({ activeTab, onTabChange, isExpanded, onToggleExpand }: 
         <motion.div
             initial={false}
             animate={{ width: isExpanded ? 240 : 64 }}
-            className="relative h-screen bg-background flex flex-col z-50 transition-all duration-300 ease-in-out border-r border-white/5"
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="relative h-screen bg-background flex flex-col z-50 border-r border-white/5"
         >
             {/* Toggle / Header */}
-            <div className={`h-16 flex items-center ${isExpanded ? 'justify-between px-4' : 'justify-center'} mb-2`}>
-                <AnimatePresence>
+            <motion.div layout className={`h-16 flex items-center ${isExpanded ? 'justify-between px-4' : 'justify-center'} mb-2 overflow-hidden`}>
+                <AnimatePresence mode="wait">
                     {isExpanded && (
                         <motion.div
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -10 }}
-                            className="flex items-center gap-3"
+                            initial={{ opacity: 0, width: 0 }}
+                            animate={{ opacity: 1, width: "auto" }}
+                            exit={{ opacity: 0, width: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="flex items-center gap-3 whitespace-nowrap overflow-hidden"
                         >
-                            <NexLabIcon className="w-8 h-8 text-primary" />
+                            <NexLabIcon className="w-8 h-8 text-primary shrink-0" />
                             <span className="text-xl font-bold text-white">NexLab</span>
                         </motion.div>
                     )}
                 </AnimatePresence>
-                <button
+                <motion.button
+                    layout
                     onClick={onToggleExpand}
-                    className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+                    className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
                 >
                     <Menu className="w-5 h-5" />
-                </button>
-            </div>
+                </motion.button>
+            </motion.div>
 
             {/* Navigation */}
             <div className="flex-1 flex flex-col gap-1 px-2">
@@ -69,25 +72,31 @@ export function Sidebar({ activeTab, onTabChange, isExpanded, onToggleExpand }: 
                     const Icon = item.icon;
                     return (
                         <div key={item.id} className="relative">
-                            <button
+                            <motion.button
+                                layout
                                 onClick={() => onTabChange(item.id)}
+                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                 className={`
-                                    relative w-full flex items-center ${isExpanded ? 'px-3' : 'justify-center'} py-3 rounded-lg transition-all duration-200 group
+                                    relative w-full flex items-center py-3 rounded-lg transition-colors duration-200 group overflow-hidden
+                                    ${isExpanded ? 'pl-[14px] pr-3' : 'pl-[14px]'} 
                                     ${isActive
                                         ? 'bg-surface-highlight text-white'
                                         : 'text-gray-400 hover:text-white hover:bg-white/5'
                                     }
                                 `}
                             >
-                                <Icon className={`w-5 h-5 ${isActive ? 'text-primary' : ''} transition-colors`} />
+                                <motion.div layout className="flex items-center justify-center shrink-0">
+                                    <Icon className={`w-5 h-5 ${isActive ? 'text-primary' : ''} transition-colors`} />
+                                </motion.div>
 
-                                <AnimatePresence>
+                                <AnimatePresence mode="wait">
                                     {isExpanded && (
                                         <motion.span
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: -10 }}
-                                            className="ml-3 font-medium whitespace-nowrap"
+                                            initial={{ opacity: 0, width: 0 }}
+                                            animate={{ opacity: 1, width: "auto" }}
+                                            exit={{ opacity: 0, width: 0 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="ml-3 font-medium whitespace-nowrap overflow-hidden"
                                         >
                                             {item.label}
                                         </motion.span>
@@ -99,7 +108,7 @@ export function Sidebar({ activeTab, onTabChange, isExpanded, onToggleExpand }: 
                                         {item.label}
                                     </div>
                                 )}
-                            </button>
+                            </motion.button>
                         </div>
                     );
                 })}

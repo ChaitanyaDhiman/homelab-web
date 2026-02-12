@@ -24,6 +24,7 @@ export function HealthSummary() {
     const [isExpanded, setIsExpanded] = useState(false);
     const { timeFormat, dateFormat, getEffectiveTimeFormat } = useSettings();
     const [apps, setApps] = useState<App[]>([]);
+    const [appsLoading, setAppsLoading] = useState(true);
 
     // Fetch apps from API
     useEffect(() => {
@@ -41,6 +42,8 @@ export function HealthSummary() {
                 }
             } catch (err) {
                 console.error('Failed to fetch apps:', err);
+            } finally {
+                setAppsLoading(false);
             }
         };
         fetchApps();
@@ -100,7 +103,7 @@ export function HealthSummary() {
         return `${formattedDate} ${formattedTime}`;
     })() : null;
 
-    if (loading) {
+    if (loading || appsLoading) {
         return (
             <div className="w-full h-32 flex items-center justify-center bg-white/5 rounded-lg border border-white/10 backdrop-blur-sm">
                 <div className="flex flex-col items-center gap-2">

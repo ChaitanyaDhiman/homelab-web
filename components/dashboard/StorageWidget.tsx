@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { HardDrive, Server, Cloud, Film, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { storageDrives } from '@/app/config/storage';
+import { getIconComponent } from '@/lib/iconUtils';
 
 interface DriveInfo {
     id: string;
@@ -60,11 +60,6 @@ export function StorageWidget() {
         if (percentage >= 90) return 'red';
         if (percentage >= 80) return 'yellow';
         return 'green';
-    };
-
-    const getStorageIcon = (driveId: string) => {
-        const configDrive = storageDrives.find(d => d.id === driveId);
-        return configDrive?.icon || HardDrive;
     };
 
     if (loading) {
@@ -143,7 +138,7 @@ export function StorageWidget() {
                             {/* Drives Grid */}
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                                 {data.drives.map((drive) => {
-                                    const DriveIcon = getStorageIcon(drive.id);
+                                    const DriveIcon = getIconComponent(drive.icon);
                                     const driveColor = getStorageColor(drive.percentage);
 
                                     return (
