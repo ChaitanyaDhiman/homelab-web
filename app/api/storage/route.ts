@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import si from 'systeminformation';
-import { storageDrives } from '@/app/config/storage';
-import { readFileSync, existsSync, statSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { execSync } from 'child_process';
+import path from 'path';
+import { StorageConfig } from '@/types/storage';
+
+const CONFIG_PATH = path.join(process.cwd(), 'app/config/storage.json');
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -28,6 +31,20 @@ interface MountInfo {
     used: number;
     available: number;
     percentage: number;
+}
+
+function getStorageConfig(): StorageConfig {
+    if (!existsSync(CONFIG_PATH)) {
+        const defaultConfig: StorageConfig = { drives: [] };
+        saveStorageConfig(defaultConfig);
+        return defaultConfig;
+    }
+    const data = readFileSync(CONFIG_PATH, 'utf-8');
+    return JSON.parse(data);
+}
+
+function saveStorageConfig(config: StorageConfig) {
+    writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
 }
 
 async function getHostFilesystemInfo(): Promise<MountInfo[]> {
@@ -121,9 +138,10 @@ export async function GET() {
             }));
         }
 
+        const config = getStorageConfig();
         const drives: DriveInfo[] = [];
 
-        for (const configDrive of storageDrives) {
+        for (const configDrive of config.drives) {
             const foundMount = fsData.find(d => d.mount === configDrive.mount);
 
             if (foundMount) {
@@ -136,7 +154,7 @@ export async function GET() {
                     used: foundMount.used,
                     available: foundMount.available,
                     percentage: foundMount.percentage,
-                    icon: configDrive.icon.name || 'HardDrive',
+                    icon: configDrive.icon || 'HardDrive',
                     found: true,
                 });
             } else if (configDrive.fallback) {
@@ -149,7 +167,7 @@ export async function GET() {
                     used: configDrive.fallback.used,
                     available: configDrive.fallback.total - configDrive.fallback.used,
                     percentage: configDrive.fallback.percentage,
-                    icon: configDrive.icon.name || 'HardDrive',
+                    icon: configDrive.icon || 'HardDrive',
                     found: false,
                 });
             }
@@ -171,6 +189,20 @@ export async function GET() {
                 error: error.message,
                 timestamp: new Date().toISOString(),
             },
+            { status: 500 }
+        );
+    }
+}
+
+export async function POST(request: Request) {
+    try {
+        const config: StorageConfig = await request.json();
+        saveStorageConfig(config);
+        return NextResponse.json({ success: true });
+    } catch (error: any) {
+        console.error('Error saving storage config:', error);
+        return NextResponse.json(
+            { success: false, error: error.message },
             { status: 500 }
         );
     }

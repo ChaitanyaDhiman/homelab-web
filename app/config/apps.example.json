@@ -1,0 +1,183 @@
+{
+  "uncategorizedApps": [
+    {
+      "id": "open-webui",
+      "name": "Open WebUI",
+      "description": "AI chat interface with local LLM support via Ollama",
+      "url": "http://ai.home",
+      "icon": "Brain",
+      "healthCheckUrl": "http://open-webui:8080"
+    }
+  ],
+  "categories": [
+    {
+      "id": "media",
+      "name": "Media",
+      "description": "",
+      "apps": [
+        {
+          "id": "jellyfin",
+          "name": "Jellyfin",
+          "description": "Media streaming server for movies, TV shows, and music",
+          "url": "http://jellyfin.home",
+          "icon": "Server",
+          "healthCheckUrl": "http://jellyfin:8096"
+        },
+        {
+          "id": "immich",
+          "name": "Immich",
+          "description": "Self-hosted photo and video management solution",
+          "url": "http://immich.home",
+          "icon": "Camera",
+          "healthCheckUrl": "http://host.docker.internal:2283"
+        },
+        {
+          "id": "plex",
+          "name": "Plex",
+          "description": "Media streaming server for movies, TV shows, and music",
+          "url": "http://plex.home",
+          "icon": "Server",
+          "healthCheckUrl": "https://host.docker.internal:32400"
+        }
+      ]
+    },
+    {
+      "id": "ai",
+      "name": "AI",
+      "description": "",
+      "apps": []
+    },
+    {
+      "id": "storage",
+      "name": "Storage",
+      "description": "",
+      "apps": [
+        {
+          "id": "filebrowser",
+          "name": "File Browser",
+          "description": "Web-based file manager for your files",
+          "url": "http://filebrowser.home",
+          "icon": "HardDrive",
+          "healthCheckUrl": "http://filebrowser:80"
+        }
+      ]
+    },
+    {
+      "id": "media-management",
+      "name": "Media Management",
+      "description": "",
+      "apps": [
+        {
+          "id": "jellyseerr",
+          "name": "Jellyseerr",
+          "description": "Request Manager",
+          "url": "http://jellyseerr.home",
+          "icon": "Bell",
+          "healthCheckUrl": "http://jellyseerr:5055"
+        },
+        {
+          "id": "sonarr",
+          "name": "Sonarr",
+          "description": "TV Show Manager",
+          "url": "http://sonarr.home",
+          "icon": "Tv",
+          "healthCheckUrl": "http://sonarr:8989"
+        },
+        {
+          "id": "radarr",
+          "name": "Radarr",
+          "description": "Movie Manager",
+          "url": "http://radarr.home",
+          "icon": "Film",
+          "healthCheckUrl": "http://radarr:7878"
+        },
+        {
+          "id": "qbittorrent",
+          "name": "Qbittorrent",
+          "description": "Torrent Client",
+          "url": "http://qbittorrent.home",
+          "icon": "Download",
+          "healthCheckUrl": "http://qbittorrent:8080"
+        },
+        {
+          "id": "prowlarr",
+          "name": "Prowlarr",
+          "description": "Indexer Manager",
+          "url": "http://prowlarr.home",
+          "icon": "Search",
+          "healthCheckUrl": "http://prowlarr:9696"
+        }
+      ]
+    },
+    {
+      "id": "network",
+      "name": "Network",
+      "description": "",
+      "apps": [
+        {
+          "id": "pihole",
+          "name": "Pi-hole",
+          "description": "Network-wide ad blocking and DNS management",
+          "url": "http://pihole.home/admin",
+          "icon": "Shield",
+          "healthCheckUrl": "http://pihole:80/admin"
+        },
+        {
+          "id": "nginx-proxy-manager",
+          "name": "Nginx Proxy Manager",
+          "description": "Reverse Proxy",
+          "url": "http://proxy.home",
+          "icon": "Cloud",
+          "healthCheckUrl": "http://nginx-proxy-manager:81"
+        }
+      ]
+    },
+    {
+      "id": "monitoring",
+      "name": "Monitoring",
+      "description": "",
+      "apps": [
+        {
+          "id": "beszel",
+          "name": "Beszel",
+          "description": "System Monitoring",
+          "url": "http://monitoring.home/system/9cdzmhfzvm13o35",
+          "icon": "Activity",
+          "healthCheckUrl": "http://host.docker.internal:8090"
+        }
+      ]
+    },
+    {
+      "id": "system",
+      "name": "System",
+      "description": "",
+      "apps": [
+        {
+          "id": "portainer",
+          "name": "Portainer",
+          "description": "Docker container management and monitoring",
+          "url": "http://portainer.home",
+          "icon": "Database",
+          "healthCheckUrl": "http://portainer:9000"
+        },
+        {
+          "id": "cockpit",
+          "name": "Cockpit",
+          "description": "Web-based graphical interface for servers",
+          "url": "http://cockpit.home:9090",
+          "icon": "Gauge",
+          "healthCheckUrl": "https://host.docker.internal:9090"
+        },
+        {
+          "id": "openspeedtest",
+          "name": "OpenSpeedtest",
+          "description": "Web-based speed test tool",
+          "url": "http://openspeedtest.home/",
+          "icon": "Wifi",
+          "healthCheckUrl": "http://openspeedtest:3000"
+        }
+      ]
+    }
+  ],
+  "tileSize": "medium"
+}

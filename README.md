@@ -1,8 +1,8 @@
-# Homelab Dashboard
+# NexLab Dashboard
 
 A secure, premium, and customizable dashboard for your local home server. Built with Next.js 15, React 19, Tailwind CSS 4, and Framer Motion.
 
-![Homelab Dashboard](./public/Dashboard_Dark.png)
+![NexLab Dashboard](./public/Dashboard_Dark.png)
 
 ## ✨ Features
 
@@ -13,6 +13,7 @@ A secure, premium, and customizable dashboard for your local home server. Built 
 - 🏥 **Resilient Health Checks**: Real-time monitoring with "Internal-to-Public" fallback logic and tiered timeouts
 - 🔋 **Battery Information**: Real-time battery status, health, and power metrics (Docker-compatible via host mounts)
 - 💾 **Storage Monitoring**: Configurable multi-drive storage display with automatic detection of mounted drives
+- 📏 **Global Tile Sizes**: Customize the grid density (Compact, Standard, Comfort) to fit your screen and preference
 - ⏰ **Customizable Clock**: Toggle between 12-hour and 24-hour time formats with persistent preferences
 - 🐳 **Docker Integration**: Includes Docker Compose setup for essential homelab services
 - 🛡️ **Connectivity Transparency**: Visual markers (Globe icon) indicating when services are using fallback public routes
@@ -24,7 +25,7 @@ A secure, premium, and customizable dashboard for your local home server. Built 
 
 This project includes two main components:
 
-1. **Next.js Dashboard** - The web interface for monitoring and accessing your services
+1. **NexLab Dashboard** - The web interface for monitoring and accessing your services
 2. **Docker Services** - Pre-configured Docker Compose setup for essential homelab services
 
 ### Included Services
@@ -113,7 +114,7 @@ See the [docker-services README](./docker-services/README.md) for detailed docum
 
 ### Option 1: Dashboard Only
 
-Deploy just the Next.js dashboard:
+Deploy just the NexLab dashboard:
 
 ```bash
 docker-compose up -d --build
@@ -186,14 +187,18 @@ For secure access with HTTPS:
 ```
 homelab-web/
 ├── app/                      # Next.js app directory
-│   ├── api/                  # API routes (health, system, storage, updates)
+│   ├── api/                  # API routes (health, system, storage, updates, apps)
 │   ├── config/               # Configuration files
-│   │   ├── services.ts       # Service definitions
-│   │   └── storage.ts        # Storage drive configuration
+│   │   ├── apps.json         # User app configuration (auto-created)
+│   │   ├── apps.example.json # Example configuration template
+│   │   ├── storage.json      # User storage configuration (auto-created)
+│   │   └── storage.example.json # Example storage configuration
 │   └── globals.css           # Global styles & theme
 ├── components/               # React components
 │   ├── dashboard/            # Dashboard widgets (HealthSummary, StorageWidget, SystemUpdateStatus)
 │   ├── icons/                # Custom icons (OllamaIcon)
+│   ├── settings/             # Settings components (AppsManager, StorageManager)
+│   ├── views/                # Main views (HomeView, AppsView, SettingsView)
 │   └── ui/                   # Reusable UI elements
 ├── contexts/                 # Centralized state management
 │   ├── HealthContext.tsx     # Service health polling
@@ -205,64 +210,57 @@ homelab-web/
 └── README.md                 # This file
 ```
 
+
 ## ⚙️ Configuration
 
-### Adding New Services
+### Apps Configuration
 
-1. **Add environment variable** in `.env.local`:
-   ```env
-   NEXT_PUBLIC_SERVICE_NEWAPP_URL=http://localhost:1234
-   ```
+The dashboard uses a key-value JSON configuration system. `app/config/apps.json` stores your applications.
 
-2. **Update service configuration** in `app/config/services.ts`:
-   ```typescript
-   import { Layout } from "lucide-react"; // Choose an icon
+#### Initial Setup
 
-   export const services: Service[] = [
-     // ... existing services
-     {
-       id: "new-app",
-       name: "My New App",
-       description: "Description of the app",
-       url: process.env.NEXT_PUBLIC_SERVICE_NEWAPP_URL || "/unavailable?service=new-app",
-       icon: Layout,
-       category: "system", // 'media' | 'system' | 'dev' | 'network' | 'ai' | 'storage' | 'media management' | 'monitoring'
-       status: "online",
-     },
-   ];
-   ```
+1. **Automatic Creation**: If `apps.json` is missing (e.g., fresh install), NexLab will automatically create it using `apps.example.json` as a base.
+2. **Settings UI**: Navigate to **Settings → Apps Management** to start adding apps immediately.
 
-### Configuring Storage Drives
+#### Adding Apps via UI
 
-Edit `app/config/storage.ts` to configure which drives are displayed:
+The easiest way to manage apps is through the web interface:
 
-```typescript
-export const storageDrives: StorageDrive[] = [
-  {
-    id: "main",
-    name: "main",
-    label: "Main Storage",
-    mount: "/",           // Root partition
-    icon: Server,
-  },
-  {
-    id: "cloud",
-    name: "cloud",
-    label: "Cloud Storage",
-    mount: "/mnt/cloud",  // Your cloud mount point
-    icon: Cloud,
-  },
-  {
-    id: "media",
-    name: "media",
-    label: "Media Storage",
-    mount: "/mnt/media",  // Your media drive mount point
-    icon: Film,
-  },
-];
+1. Navigate to **Settings → Apps Management**
+2. Click **"Add App"** or **"Add Category"**
+3. Fill in the details:
+   - **Name**: Display name for your app
+   - **Description**: Brief description
+   - **URL**: Access URL for the app
+   - **Health Check URL**: URL to ping for health status (optional)
+   - **Icon**: Choose from 1000+ Lucide icons, upload custom, or use URL
+4. **Drag and drop** to reorder apps and categories
+5. Click **"Save Changes"**
+
+### Storage Configuration
+
+Manage your monitored drives via **Settings → Storage**. `app/config/storage.json` stores this configuration.
+
+1. **Automatic Creation**: If missing, `storage.json` is created from `storage.example.json`.
+2. **Settings UI**: Add, edit, or remove drives in the Settings tab.
+   - **Label**: Display name (e.g., "Movies Drive")
+   - **Mount Point**: The path to monitor (e.g., `/mnt/media`)
+   - **Icon**: Select a matching icon
+
+Only drives that are actually mounted and accessible by the system will be displayed in the widget.
+
+### Environment Variables
+
+For Docker internal networking, you can optionally configure internal URLs via environment variables:
+
+```env
+# Internal Docker URLs (optional, for health checks)
+INTERNAL_SERVICE_PLEX_URL=http://plex:32400/web
+INTERNAL_SERVICE_JELLYFIN_URL=http://jellyfin:8096
+# ... add more as needed
 ```
 
-Only drives that are actually present on the system will be displayed.
+The health API will try internal URLs first, then fall back to the URLs in `apps.json`.
 
 ### Customizing the Theme
 
@@ -285,7 +283,7 @@ The dashboard features a robust dual-theme system built for aesthetics and usabi
 - **Dark Theme**: The default immersive theme featuring deep violet/blue gradients, neon accents, and glowing glass panels. Optimized for late-night maintenance sessions.
 - **Light Theme**: A polished, professional light theme using soft pastel gradients and high-contrast text for excellent readability in bright environments.
 
-![Homelab Dashboard Light Theme](./public/Dashboard_Light.png)
+![NexLab Dashboard Light Theme](./public/Dashboard_Light.png)
 - **Glassmorphism**: Both themes utilize advanced backdrop filters, semi-transparent layers, and subtle borders to create a modern, layered depth effect.
 - **Smooth Transitions**: All theme changes are animated with smooth 300ms transitions for background colors, borders, and text.
 
@@ -325,7 +323,7 @@ The dashboard monitors host system updates using a secure **sidecar container ar
               │
               ▼
 ┌─────────────────────────────────────────┐
-│        nextjs_dashboard                 │
+│           nextjs_dashboard              │
 │  - Reads update status from JSON        │
 │  - Can trigger manual refresh           │
 └─────────────────────────────────────────┘
@@ -557,7 +555,7 @@ docker-compose up -d --build --force-recreate
 
 ### Storage Drives Not Showing
 
-- Check that the mount points in `app/config/storage.ts` match your actual mounts
+- Check your storage configuration in Settings or `app/config/storage.json`
 - Verify the drives are mounted: `df -h`
 - Only drives that are actually present will be displayed
 
@@ -592,4 +590,4 @@ MIT License - feel free to use this project for your own homelab!
 
 ---
 
-**Made with ❤️ for homelabbers**
+**NexLab Dashboard - Made with ❤️ for homelabbers**

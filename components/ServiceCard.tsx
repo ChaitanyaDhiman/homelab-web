@@ -1,44 +1,53 @@
 "use client";
 
-import { Service } from "@/app/config/services";
+import { App } from "@/types/apps";
 import { motion } from "framer-motion";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { ServiceHealthIndicator } from "./dashboard/ServiceHealthIndicator";
+import { getIconComponent } from "@/lib/iconUtils";
 
 interface ServiceCardProps {
-    service: Service;
+    service: App;
+    tileSize?: 'small' | 'medium' | 'large';
 }
 
-export function ServiceCard({ service }: ServiceCardProps) {
-    const Icon = service.icon;
-
-
+export function ServiceCard({ service, tileSize = 'medium' }: ServiceCardProps) {
+    const IconComponent = getIconComponent(service.icon);
+    const isSmall = tileSize === 'small';
 
     return (
         <motion.div
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="glass-card group relative overflow-hidden rounded-xl p-6 transition-all h-full"
+            className={`glass-card group relative overflow-hidden rounded-xl transition-all h-full ${isSmall ? 'p-3' : 'p-6'
+                }`}
         >
-            <Link href={service.url} target="_blank" className="block h-full w-full relative">
-                <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">
-                        <Icon className="w-8 h-8 text-[var(--primary)]" />
-                    </div>
+            <Link
+                href={service.url}
+                target="_blank"
+                className={`block h-full w-full relative ${isSmall ? 'flex items-center gap-3' : ''}`}
+            >
+                <div className={`rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors ${isSmall ? 'p-2' : 'p-3 mb-4 inline-block'
+                    }`}>
+                    <IconComponent className={`${isSmall ? 'w-5 h-5' : 'w-8 h-8'} text-[var(--primary)]`} />
                 </div>
 
-                <div className="absolute top-0 right-0">
+                <div className={`absolute ${isSmall ? 'right-0 top-1/2 -translate-y-1/2 scale-75 origin-right' : 'top-0 right-0'
+                    }`}>
                     <ServiceHealthIndicator serviceId={service.id} />
                 </div>
 
-                <div className="space-y-2">
-                    <h3 className="font-semibold text-lg text-white group-hover:text-[var(--primary)] transition-colors">
+                <div className={`${isSmall ? 'flex-1 min-w-0 pr-6' : 'space-y-2'}`}>
+                    <h3 className={`font-semibold text-white group-hover:text-[var(--primary)] transition-colors ${isSmall ? 'text-sm truncate' : 'text-lg'
+                        }`}>
                         {service.name}
                     </h3>
-                    <p className="text-sm text-gray-400 group-hover:text-gray-300 line-clamp-2 pr-6">
-                        {service.description}
-                    </p>
+                    {!isSmall && (
+                        <p className="text-sm text-gray-400 group-hover:text-gray-300 line-clamp-2 pr-6">
+                            {service.description}
+                        </p>
+                    )}
                 </div>
 
                 <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-2 group-hover:translate-x-0">

@@ -50,3 +50,11 @@ docker-services/filebrowser/filebrowser.db
 **/redis_data
 **/data
 !docker-services/**/docker-compose.yml
+
+# User's personal app configuration
+app/config/apps.json
+app/config/storage.json
+
+# Keep example configuration in repo
+!app/config/apps.example.json
+!app/config/storage.example.json

@@ -1,0 +1,25 @@
+{
+  "drives": [
+    {
+      "id": "main",
+      "name": "main",
+      "label": "Main Storage",
+      "mount": "/",
+      "icon": "Server"
+    },
+    {
+      "id": "media",
+      "name": "media",
+      "label": "Media Storage",
+      "mount": "/mnt/media",
+      "icon": "Film"
+    },
+    {
+      "id": "backup",
+      "name": "backup",
+      "label": "Backup Storage",
+      "mount": "/mnt/backup",
+      "icon": "HardDrive"
+    }
+  ]
+}

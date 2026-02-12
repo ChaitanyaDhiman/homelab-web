@@ -4,7 +4,6 @@ import "./globals.css";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { HealthProvider } from "@/contexts/HealthContext";
 import { SystemProvider } from "@/contexts/SystemContext";
-import { SettingsPanel } from "@/components/SettingsPanel";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -13,8 +12,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Homelab Dashboard",
-  description: "Central command for local services",
+  title: "NexLab",
+  description: "Central dashboard for homelab",
 };
 
 export default function RootLayout({
@@ -28,10 +27,8 @@ export default function RootLayout({
         <SettingsProvider>
           <HealthProvider>
             <SystemProvider>
-              <main className="flex-1 relative z-10 w-full max-w-7xl mx-auto p-4 md:p-8">
-                {children}
-              </main>
-              <SettingsPanel />
+              {/* AppShell inside page.tsx takes over the layout structure */}
+              {children}
             </SystemProvider>
           </HealthProvider>
         </SettingsProvider>

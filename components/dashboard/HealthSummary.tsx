@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, XCircle, AlertCircle, Activity, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { services } from '@/app/config/services';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useHealth } from '@/contexts/HealthContext';
 
@@ -14,22 +13,50 @@ interface HealthSummaryData {
     offline: number;
 }
 
+interface App {
+    id: string;
+    name: string;
+    healthCheckUrl?: string;
+}
+
 export function HealthSummary() {
     const { servicesHealth, loading, error, lastChecked } = useHealth();
     const [isExpanded, setIsExpanded] = useState(false);
     const { timeFormat, dateFormat, getEffectiveTimeFormat } = useSettings();
+    const [apps, setApps] = useState<App[]>([]);
 
-    const summary: HealthSummaryData | null = servicesHealth ? (() => {
-        const results = services.map(service => {
-            const statusData = servicesHealth[service.id];
+    // Fetch apps from API
+    useEffect(() => {
+        const fetchApps = async () => {
+            try {
+                const response = await fetch('/api/apps');
+                if (response.ok) {
+                    const data = await response.json();
+                    // Collect all apps from categories and uncategorized
+                    const allApps = [
+                        ...data.uncategorizedApps,
+                        ...data.categories.flatMap((cat: any) => cat.apps)
+                    ];
+                    setApps(allApps.filter((app: App) => app.healthCheckUrl));
+                }
+            } catch (err) {
+                console.error('Failed to fetch apps:', err);
+            }
+        };
+        fetchApps();
+    }, []);
+
+    const summary: HealthSummaryData | null = servicesHealth && apps.length > 0 ? (() => {
+        const results = apps.map(app => {
+            const statusData = servicesHealth[app.id];
             if (statusData) {
                 return {
-                    id: service.id,
+                    id: app.id,
                     status: statusData.status,
                     responseTime: statusData.responseTime
                 };
             }
-            return { id: service.id, status: 'offline', responseTime: 0 };
+            return { id: app.id, status: 'offline', responseTime: 0 };
         });
 
         return {
