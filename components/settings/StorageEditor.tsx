@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { StorageDrive } from "@/types/storage";
+import { StorageDrive, StorageDriveConfig } from "@/types/storage";
 import { X, Search } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 
 interface StorageEditorProps {
     drive: StorageDrive | null;
-    onSave: (drive: StorageDrive) => void;
+    onSave: (drive: StorageDriveConfig) => void;
     onCancel: () => void;
 }
 

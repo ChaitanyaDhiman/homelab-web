@@ -4,16 +4,16 @@ import { App } from "@/types/apps";
 import { motion } from "framer-motion";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
-import { ServiceHealthIndicator } from "./dashboard/ServiceHealthIndicator";
+import { ServiceHealthIndicator } from "@/components/apps/ServiceHealthIndicator";
 import { getIconComponent } from "@/lib/iconUtils";
 
-interface ServiceCardProps {
-    service: App;
+interface AppTileProps {
+    app: App;
     tileSize?: 'small' | 'medium' | 'large';
 }
 
-export function ServiceCard({ service, tileSize = 'medium' }: ServiceCardProps) {
-    const IconComponent = getIconComponent(service.icon);
+export function AppTile({ app, tileSize = 'medium' }: AppTileProps) {
+    const IconComponent = getIconComponent(app.icon);
     const isSmall = tileSize === 'small';
 
     return (
@@ -24,7 +24,7 @@ export function ServiceCard({ service, tileSize = 'medium' }: ServiceCardProps) 
                 }`}
         >
             <Link
-                href={service.url}
+                href={app.url}
                 target="_blank"
                 className={`block h-full w-full relative ${isSmall ? 'flex items-center gap-3' : ''}`}
             >
@@ -35,17 +35,17 @@ export function ServiceCard({ service, tileSize = 'medium' }: ServiceCardProps) 
 
                 <div className={`absolute ${isSmall ? 'right-0 top-1/2 -translate-y-1/2 scale-75 origin-right' : 'top-0 right-0'
                     }`}>
-                    <ServiceHealthIndicator serviceId={service.id} />
+                    <ServiceHealthIndicator serviceId={app.id} />
                 </div>
 
                 <div className={`${isSmall ? 'flex-1 min-w-0 pr-6' : 'space-y-2'}`}>
                     <h3 className={`font-semibold text-white group-hover:text-[var(--primary)] transition-colors ${isSmall ? 'text-sm truncate' : 'text-lg'
                         }`}>
-                        {service.name}
+                        {app.name}
                     </h3>
                     {!isSmall && (
                         <p className="text-sm text-gray-400 group-hover:text-gray-300 line-clamp-2 pr-6">
-                            {service.description}
+                            {app.description}
                         </p>
                     )}
                 </div>

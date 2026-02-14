@@ -1,9 +1,30 @@
-export interface StorageDrive {
+
+export type StorageDrive = DriveInfo;
+
+export interface DriveInfo {
     id: string;
     name: string;
     label: string;
     mount: string;
-    icon: string; // Lucide icon name
+    total: number;
+    used: number;
+    available: number;
+    percentage: number;
+    icon: string;
+    found: boolean;
+    fallback?: {
+        total: number;
+        used: number;
+        percentage: number;
+    };
+}
+
+export interface StorageDriveConfig {
+    id: string;
+    name: string;
+    label: string;
+    mount: string;
+    icon?: string;
     fallback?: {
         total: number;
         used: number;
@@ -12,5 +33,10 @@ export interface StorageDrive {
 }
 
 export interface StorageConfig {
-    drives: StorageDrive[];
+    drives: StorageDriveConfig[];
+}
+
+export interface StorageData {
+    drives: DriveInfo[];
+    totalDrives: number;
 }

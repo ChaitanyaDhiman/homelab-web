@@ -8,11 +8,11 @@ A secure, premium, and customizable dashboard for your local home server. Built 
 
 - 🚀 **Centralized Hub**: Single entry point for all your local services with optimized state management via React Context
 - 🎨 **Premium Design**: "Deep Space" theme with glassmorphism, animated backgrounds, and interactive hover effects
-- ⚡ **Optimized Monitoring**: High-performance system stats (CPU, GPU, RAM, Temperature, Fan Speed) using a centralized polling architecture
+- ⚡ **Optimized Monitoring**: CPU/GPU Gauges, Temperature circular monitors, and Network speed tracking
 - 🔄 **System Update Monitoring**: Track available OS updates and security patches with one-click package listing
 - 🏥 **Resilient Health Checks**: Real-time monitoring with "Internal-to-Public" fallback logic and tiered timeouts
-- 🔋 **Battery Information**: Real-time battery status, health, and power metrics (Docker-compatible via host mounts)
-- 💾 **Storage Monitoring**: Configurable multi-drive storage display with automatic detection of mounted drives
+- 🐳 **Docker Integration**: Live container stats (CPU/Mem) and management via Portainer
+- 💾 **Storage Monitoring**: Bar and Pie chart visualizations for multiple drives
 - 📏 **Global Tile Sizes**: Customize the grid density (Compact, Standard, Comfort) to fit your screen and preference
 - ⏰ **Customizable Clock**: Toggle between 12-hour and 24-hour time formats with persistent preferences
 - 🐳 **Docker Integration**: Includes Docker Compose setup for essential homelab services
@@ -61,6 +61,7 @@ This project includes two main components:
 - **Beszel** - Lightweight server monitoring with beautiful dashboards and GPU support
 
 See the [docker-services README](./docker-services/README.md) for detailed documentation on these services.
+See the [Documentation](/docs) folder for details on [Widgets](/docs/widgets.md) and [API](/docs/api_reference.md).
 
 ## 🚀 Quick Start
 

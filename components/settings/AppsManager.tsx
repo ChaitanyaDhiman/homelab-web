@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { AppsConfig, Category, App } from "@/types/apps";
-import { Plus, Save, X, Edit2, Trash2, Loader2, GripVertical } from "lucide-react";
+import { Plus, Save, X, Edit2, Trash2, Loader2, GripVertical, FolderMinus, FolderPlus } from "lucide-react";
 import { CategoryEditor } from "./CategoryEditor";
 import { AppEditor } from "./AppEditor";
 import {
@@ -32,11 +32,17 @@ function SortableApp({
     categoryId,
     onEdit,
     onDelete,
+    onUncategorize,
+    onCategorize,
+    categories,
 }: {
     app: App;
     categoryId: string | null;
     onEdit: () => void;
     onDelete: () => void;
+    onUncategorize?: () => void;
+    onCategorize?: (categoryId: string) => void;
+    categories?: Category[];
 }) {
     const uniqueId = categoryId ? `${categoryId}:${app.id}` : `uncategorized:${app.id}`;
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -74,6 +80,42 @@ function SortableApp({
                 </div>
             </div>
             <div className="flex gap-1 ml-2">
+                {/* Category dropdown for uncategorized apps */}
+                {categoryId === null && onCategorize && categories && categories.length > 0 && (
+                    <div className="relative group">
+                        <button
+                            className="p-1.5 hover:bg-emerald-500/10 rounded transition-colors"
+                            title="Add to Category"
+                        >
+                            <FolderPlus className="w-3.5 h-3.5 text-emerald-400" />
+                        </button>
+                        <div className="absolute right-0 top-full mt-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 min-w-[200px]">
+                            <div className="p-2">
+                                <div className="text-xs font-medium text-gray-400 px-3 py-1.5 mb-1">Move to Category</div>
+                                {categories.map((category) => (
+                                    <button
+                                        key={category.id}
+                                        onClick={() => onCategorize(category.id)}
+                                        className="w-full text-left px-3 py-2.5 text-sm text-white hover:bg-white/10 hover:text-primary rounded-md transition-all duration-150 flex items-center gap-2"
+                                    >
+                                        <span className="w-1.5 h-1.5 rounded-full bg-primary/50"></span>
+                                        {category.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {/* Uncategorize button for categorized apps */}
+                {categoryId !== null && onUncategorize && (
+                    <button
+                        onClick={onUncategorize}
+                        className="p-1.5 hover:bg-orange-500/10 rounded transition-colors"
+                        title="Move to Uncategorized"
+                    >
+                        <FolderMinus className="w-3.5 h-3.5 text-orange-400" />
+                    </button>
+                )}
                 <button
                     onClick={onEdit}
                     className="p-1.5 hover:bg-white/10 rounded transition-colors"
@@ -102,6 +144,7 @@ function DroppableCategory({
     onAddApp,
     onEditApp,
     onDeleteApp,
+    onUncategorizeApp,
     isOver,
 }: {
     category: Category;
@@ -111,6 +154,7 @@ function DroppableCategory({
     onAddApp: () => void;
     onEditApp: (app: App) => void;
     onDeleteApp: (appId: string) => void;
+    onUncategorizeApp: (appId: string) => void;
     isOver: boolean;
 }) {
     const { attributes, listeners, setNodeRef: setCategoryRef, transform, transition, isDragging } = useSortable({
@@ -206,6 +250,7 @@ function DroppableCategory({
                             categoryId={category.id}
                             onEdit={() => onEditApp(app)}
                             onDelete={() => onDeleteApp(app.id)}
+                            onUncategorize={() => onUncategorizeApp(app.id)}
                         />
                     ))}
                 </div>
@@ -522,6 +567,29 @@ export function AppsManager() {
         }
     };
 
+    const handleUncategorizeApp = (categoryId: string, appId: string) => {
+        if (!config) return;
+
+        const category = config.categories.find(c => c.id === categoryId);
+        if (!category) return;
+
+        const app = category.apps.find(a => a.id === appId);
+        if (!app) return;
+
+        // Move app from category to uncategorized
+        moveAppBetweenCategories(categoryId, null, app);
+    };
+
+    const handleCategorizeApp = (appId: string, categoryId: string) => {
+        if (!config) return;
+
+        const app = (config.uncategorizedApps || []).find(a => a.id === appId);
+        if (!app) return;
+
+        // Move app from uncategorized to category
+        moveAppBetweenCategories(null, categoryId, app);
+    };
+
     const { setNodeRef: setUncategorizedRef } = useDroppable({
         id: 'uncategorized',
         data: {
@@ -754,6 +822,8 @@ export function AppsManager() {
                                             categoryId={null}
                                             onEdit={() => handleEditApp(null, app)}
                                             onDelete={() => handleDeleteApp(null, app.id)}
+                                            onCategorize={(categoryId) => handleCategorizeApp(app.id, categoryId)}
+                                            categories={config.categories}
                                         />
                                     ))}
                                 </div>
@@ -774,6 +844,7 @@ export function AppsManager() {
                                 onAddApp={() => handleAddApp(category.id)}
                                 onEditApp={(app) => handleEditApp(category.id, app)}
                                 onDeleteApp={(appId) => handleDeleteApp(category.id, appId)}
+                                onUncategorizeApp={(appId) => handleUncategorizeApp(category.id, appId)}
                                 isOver={overId === category.id}
                             />
                         ))}

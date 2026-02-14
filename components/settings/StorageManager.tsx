@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { StorageConfig, StorageDrive } from "@/types/storage";
+import { StorageConfig, StorageDrive, StorageDriveConfig } from "@/types/storage";
 import { Plus, Save, Edit2, Trash2, Loader2, HardDrive } from "lucide-react";
 import { StorageEditor } from "./StorageEditor";
 import * as LucideIcons from "lucide-react";
@@ -44,7 +44,7 @@ export function StorageManager() {
                     icon: d.icon,
                     // We don't have the original fallback data here unfortunately unless we fetch the raw JSON.
                     // But for now let's assume valid drives don't need fallback updates from here.
-                    // TODO: In a perfect world, we'd have a GET /api/config/storage endpoint.
+
                     // For now, we'll work with what we have.
                 }));
                 setConfig({ drives });
@@ -89,7 +89,7 @@ export function StorageManager() {
         setShowEditor(true);
     };
 
-    const handleSaveDrive = (drive: StorageDrive) => {
+    const handleSaveDrive = (drive: StorageDriveConfig) => {
         if (!config) return;
 
         if (editingDrive) {
@@ -174,18 +174,39 @@ export function StorageManager() {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {config.drives.map((drive) => {
+                {config.drives.map((drive: any) => {
                     const Icon = (LucideIcons as any)[drive.icon] || LucideIcons.HardDrive;
+                    const isMissing = drive.found === false && drive.total === 0;
+
                     return (
-                        <div key={drive.id} className="bg-white/5 rounded-lg p-5 border border-white/10 flex items-start justify-between group">
+                        <div
+                            key={drive.id}
+                            className={`rounded-lg p-5 border flex items-start justify-between group transition-colors ${isMissing
+                                ? 'bg-red-500/5 border-red-500/20'
+                                : 'bg-white/5 border-white/10 hover:border-primary/50'
+                                }`}
+                        >
                             <div className="flex items-start gap-4">
-                                <div className="p-3 bg-white/5 rounded-lg">
-                                    <Icon className="w-6 h-6 text-primary" />
+                                <div className={`p-3 rounded-lg ${isMissing ? 'bg-red-500/10' : 'bg-white/5'}`}>
+                                    {isMissing ? (
+                                        <LucideIcons.AlertTriangle className="w-6 h-6 text-red-400" />
+                                    ) : (
+                                        <Icon className="w-6 h-6 text-primary" />
+                                    )}
                                 </div>
                                 <div>
-                                    <h3 className="font-medium text-white">{drive.label}</h3>
+                                    <h3 className={`font-medium ${isMissing ? 'text-red-400' : 'text-white'}`}>
+                                        {drive.label}
+                                    </h3>
                                     <p className="text-sm text-gray-400 font-mono mt-0.5">{drive.mount}</p>
-                                    <p className="text-xs text-gray-500 mt-2">ID: {drive.id}</p>
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <span className="text-xs text-gray-500">ID: {drive.id}</span>
+                                        {isMissing && (
+                                            <span className="text-xs text-red-400 font-medium px-1.5 py-0.5 bg-red-500/10 rounded">
+                                                Not Found
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                             <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

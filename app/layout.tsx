@@ -4,6 +4,7 @@ import "./globals.css";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { HealthProvider } from "@/contexts/HealthContext";
 import { SystemProvider } from "@/contexts/SystemContext";
+import { WidgetProvider } from "@/contexts/WidgetContext";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -27,8 +28,10 @@ export default function RootLayout({
         <SettingsProvider>
           <HealthProvider>
             <SystemProvider>
-              {/* AppShell inside page.tsx takes over the layout structure */}
-              {children}
+              <WidgetProvider>
+                {/* AppShell inside page.tsx takes over the layout structure */}
+                {children}
+              </WidgetProvider>
             </SystemProvider>
           </HealthProvider>
         </SettingsProvider>

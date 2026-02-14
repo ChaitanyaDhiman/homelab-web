@@ -8,10 +8,11 @@ const execAsync = promisify(exec);
 export async function GET() {
     try {
         // Optimize: Fetch only essential data from systeminformation
-        const [cpu, mem, time] = await Promise.all([
+        const [cpu, mem, time, netStats] = await Promise.all([
             si.currentLoad(),
             si.mem(),
-            si.time()
+            si.time(),
+            si.networkStats(),
         ]);
 
         // Get temperature and fan speed from sensors command (single call for both)
@@ -145,6 +146,10 @@ export async function GET() {
             temperature: avgTemp,
             uptime: time.uptime,
             fanSpeed,
+            network: {
+                rx_sec: netStats[0]?.rx_sec ?? 0,
+                tx_sec: netStats[0]?.tx_sec ?? 0,
+            },
         });
     } catch (error) {
         console.error('Error fetching system stats:', error);

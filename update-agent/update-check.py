@@ -41,12 +41,21 @@ def run_command(cmd: str) -> tuple[int, str, str]:
 
 def sync_filesystem() -> None:
     """Force kernel to invalidate directory cache for bind-mounted apt directories."""
-    try:
-        lists_path = Path('/host/var/lib/apt/lists')
-        if lists_path.exists():
-            os.stat(lists_path)
-    except Exception:
-        pass
+    paths_to_sync = [
+        '/host/var/lib/apt/lists',
+        '/host/var/lib/dpkg/status',
+        '/host/var/cache/apt/pkgcache.bin'
+    ]
+    for path_str in paths_to_sync:
+        try:
+            p = Path(path_str)
+            if p.exists():
+                os.stat(p)
+                # For directories, list contents to force dentry update
+                if p.is_dir():
+                    os.listdir(p)
+        except Exception:
+            pass
 
 
 def get_upgrade_info() -> dict:

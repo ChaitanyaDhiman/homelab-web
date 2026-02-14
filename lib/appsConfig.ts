@@ -4,23 +4,32 @@ import { AppsConfig } from '@/types/apps';
 import * as LucideIcons from 'lucide-react';
 
 const APPS_CONFIG_PATH = path.join(process.cwd(), 'app/config/apps.json');
+const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'app/config/default.json');
 
 /**
- * Loads the apps configuration from the JSON file
+ * Loads the apps configuration.
+ * Priority: apps.json → default.json (apps section) → empty default
  */
 export function loadAppsConfig(): AppsConfig {
     try {
-        if (!fs.existsSync(APPS_CONFIG_PATH)) {
-            const defaultConfig = getDefaultConfig();
-            saveAppsConfig(defaultConfig);
-            return defaultConfig;
+        // If apps.json exists, use it
+        if (fs.existsSync(APPS_CONFIG_PATH)) {
+            const fileContent = fs.readFileSync(APPS_CONFIG_PATH, 'utf-8');
+            const config = JSON.parse(fileContent) as AppsConfig;
+            return resolveEnvVariables(config);
         }
 
-        const fileContent = fs.readFileSync(APPS_CONFIG_PATH, 'utf-8');
-        const config = JSON.parse(fileContent) as AppsConfig;
+        // Fall back to default.json → apps section
+        if (fs.existsSync(DEFAULT_CONFIG_PATH)) {
+            const fileContent = fs.readFileSync(DEFAULT_CONFIG_PATH, 'utf-8');
+            const defaults = JSON.parse(fileContent);
+            if (defaults.apps) {
+                return resolveEnvVariables(defaults.apps as AppsConfig);
+            }
+        }
 
-        // Resolve environment variables in URLs
-        return resolveEnvVariables(config);
+        // Ultimate fallback
+        return getDefaultConfig();
     } catch (error) {
         console.error('Error loading apps config:', error);
         return getDefaultConfig();
@@ -28,7 +37,7 @@ export function loadAppsConfig(): AppsConfig {
 }
 
 /**
- * Saves the apps configuration to the JSON file
+ * Saves the apps configuration to apps.json (never writes to default.json)
  */
 export function saveAppsConfig(config: AppsConfig): void {
     try {
@@ -46,7 +55,7 @@ export function saveAppsConfig(config: AppsConfig): void {
 function resolveEnvVariables(config: AppsConfig): AppsConfig {
     return {
         ...config,
-        categories: config.categories.map(category => ({
+        categories: (config.categories || []).map(category => ({
             ...category,
             apps: category.apps.map(app => ({
                 ...app,

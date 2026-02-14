@@ -6,6 +6,7 @@ import path from 'path';
 import { StorageConfig } from '@/types/storage';
 
 const CONFIG_PATH = path.join(process.cwd(), 'app/config/storage.json');
+const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'app/config/default.json');
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -34,16 +35,27 @@ interface MountInfo {
 }
 
 function getStorageConfig(): StorageConfig {
-    if (!existsSync(CONFIG_PATH)) {
-        const defaultConfig: StorageConfig = { drives: [] };
-        saveStorageConfig(defaultConfig);
-        return defaultConfig;
+    // If storage.json exists, use it
+    if (existsSync(CONFIG_PATH)) {
+        const data = readFileSync(CONFIG_PATH, 'utf-8');
+        return JSON.parse(data);
     }
-    const data = readFileSync(CONFIG_PATH, 'utf-8');
-    return JSON.parse(data);
+
+    // Fall back to default.json → storage section
+    if (existsSync(DEFAULT_CONFIG_PATH)) {
+        const data = readFileSync(DEFAULT_CONFIG_PATH, 'utf-8');
+        const defaults = JSON.parse(data);
+        if (defaults.storage) {
+            return defaults.storage as StorageConfig;
+        }
+    }
+
+    // Ultimate fallback
+    return { drives: [] };
 }
 
 function saveStorageConfig(config: StorageConfig) {
+    // Always write to storage.json (never default.json)
     writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
 }
 
@@ -167,6 +179,20 @@ export async function GET() {
                     used: configDrive.fallback.used,
                     available: configDrive.fallback.total - configDrive.fallback.used,
                     percentage: configDrive.fallback.percentage,
+                    icon: configDrive.icon || 'HardDrive',
+                    found: false,
+                });
+            } else {
+                // Return configured but missing drive with error state
+                drives.push({
+                    id: configDrive.id,
+                    name: configDrive.name,
+                    label: configDrive.label,
+                    mount: configDrive.mount,
+                    total: 0,
+                    used: 0,
+                    available: 0,
+                    percentage: 0,
                     icon: configDrive.icon || 'HardDrive',
                     found: false,
                 });

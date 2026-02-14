@@ -1,0 +1,98 @@
+{
+    "apps": {
+        "uncategorizedApps": [],
+        "categories": [],
+        "tileSize": "medium"
+    },
+    "storage": {
+        "drives": [
+            {
+                "id": "main",
+                "name": "main",
+                "label": "Main",
+                "mount": "/",
+                "icon": "Server"
+            }
+        ]
+    },
+    "widgets": [
+        {
+            "id": "datetime-1771084496322",
+            "type": "datetime",
+            "layout": {
+                "x": 0,
+                "y": 0,
+                "w": 4,
+                "h": 3,
+                "minW": 4,
+                "minH": 2
+            },
+            "config": {}
+        },
+        {
+            "id": "system-stats-1771084642956",
+            "type": "system-stats",
+            "layout": {
+                "x": 0,
+                "y": 3,
+                "w": 4,
+                "h": 6,
+                "minW": 6,
+                "minH": 5
+            },
+            "config": {}
+        },
+        {
+            "id": "weather-1771085628009",
+            "type": "weather",
+            "layout": {
+                "x": 4,
+                "y": 0,
+                "w": 4,
+                "h": 4,
+                "minW": 4,
+                "minH": 4
+            },
+            "config": {}
+        },
+        {
+            "id": "storage-1771085719004",
+            "type": "storage",
+            "layout": {
+                "x": 4,
+                "y": 4,
+                "w": 4,
+                "h": 5,
+                "minW": 6,
+                "minH": 5
+            },
+            "config": {}
+        },
+        {
+            "id": "service-health-1771085727243",
+            "type": "service-health",
+            "layout": {
+                "x": 8,
+                "y": 0,
+                "w": 2,
+                "h": 5,
+                "minW": 4,
+                "minH": 5
+            },
+            "config": {}
+        },
+        {
+            "id": "updates-1771085754161",
+            "type": "updates",
+            "layout": {
+                "x": 8,
+                "y": 5,
+                "w": 2,
+                "h": 4,
+                "minW": 4,
+                "minH": 4
+            },
+            "config": {}
+        }
+    ]
+}

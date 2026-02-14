@@ -1,25 +1,9 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { SystemStats } from '@/types/system';
 
-interface SystemStats {
-    cpu: number;
-    memory: {
-        total: number;
-        used: number;
-        free: number;
-    };
-    gpu: {
-        name: string;
-        utilization: number;
-        memory: number;
-        memoryTotal: number;
-        temperature: number;
-    };
-    temperature: number;
-    uptime: number;
-    fanSpeed: string;
-}
+
 
 interface SystemContextType {
     stats: SystemStats | null;

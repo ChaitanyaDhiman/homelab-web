@@ -46,7 +46,7 @@ export function SettingsView({ initialTab = 'appearance' }: SettingsViewProps) {
                 const options: Intl.DateTimeFormatOptions =
                     dateFormat === 'short' ? { month: 'numeric', day: 'numeric', year: '2-digit' } :
                         dateFormat === 'medium' ? { month: 'short', day: 'numeric', year: 'numeric' } :
-                            { month: 'long', day: 'numeric', year: 'numeric' };
+                            { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
                 formattedDate = now.toLocaleDateString('en-US', options);
             }
             setPreviewDate(formattedDate);

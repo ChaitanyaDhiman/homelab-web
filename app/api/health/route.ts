@@ -39,8 +39,8 @@ export async function GET() {
             ...appsData.categories.flatMap(cat => cat.apps)
         ];
 
-        // Filter apps that have health check URLs
-        const appsWithHealthCheck = allApps.filter(app => app.healthCheckUrl);
+        // Filter apps that have either a health check URL or a standard URL
+        const appsWithHealthCheck = allApps.filter(app => app.healthCheckUrl || (app.url && !app.url.startsWith('/')));
 
         if (appsWithHealthCheck.length === 0) {
             return NextResponse.json({ success: true, data: {} });
@@ -52,7 +52,7 @@ export async function GET() {
             const fallbackUrl = app.healthCheckUrl;
 
             if (!primaryUrl || primaryUrl.startsWith('/')) {
-                console.log(`[Health] Skipping ${app.id}: No URL`);
+
                 return { id: app.id, status: 'offline', responseTime: 0 };
             }
 

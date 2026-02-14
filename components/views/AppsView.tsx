@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AppsConfig } from "@/types/apps";
-import { ServiceCard } from "@/components/ServiceCard";
+import { AppTile } from "@/components/apps/AppTile";
 import { motion } from "framer-motion";
 import { Settings, Loader2 } from "lucide-react";
 
@@ -74,7 +74,7 @@ export function AppsView({ onNavigateToSettings }: AppsViewProps) {
                 </p>
                 <button
                     onClick={onNavigateToSettings}
-                    className="px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors flex items-center gap-2"
+                    className="px-6 py-3 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/50 rounded-lg transition-colors flex items-center gap-2"
                 >
                     <Settings className="w-5 h-5" />
                     Manage Apps
@@ -126,14 +126,9 @@ export function AppsView({ onNavigateToSettings }: AppsViewProps) {
                                     : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
                                 }`}>
                                 {favoriteApps.map((app) => (
-                                    <motion.div
-                                        key={app.id}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.3 }}
-                                    >
-                                        <ServiceCard service={app} tileSize={config?.tileSize} />
-                                    </motion.div>
+                                    <div key={app.id}>
+                                        <AppTile app={app} tileSize={config?.tileSize} />
+                                    </div>
                                 ))}
                             </div>
                         </section>
@@ -162,7 +157,7 @@ export function AppsView({ onNavigateToSettings }: AppsViewProps) {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.3 }}
                                 >
-                                    <ServiceCard service={app} tileSize={config?.tileSize} />
+                                    <AppTile app={app} tileSize={config?.tileSize} />
                                 </motion.div>
                             ))}
                         </div>
@@ -194,7 +189,7 @@ export function AppsView({ onNavigateToSettings }: AppsViewProps) {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.3 }}
                                 >
-                                    <ServiceCard service={app} tileSize={config?.tileSize} />
+                                    <AppTile app={app} tileSize={config?.tileSize} />
                                 </motion.div>
                             ))}
                         </div>
