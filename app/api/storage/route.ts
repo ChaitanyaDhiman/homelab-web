@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
 import si from 'systeminformation';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { execSync } from 'child_process';
+import { promises as fs } from 'fs';
+import { existsSync } from 'fs';
+import { exec } from 'child_process';
+import util from 'util';
 import path from 'path';
 import { StorageConfig } from '@/types/storage';
 
+const execAsync = util.promisify(exec);
+
 const CONFIG_PATH = path.join(process.cwd(), 'app/config/storage.json');
-const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'app/config/default.json');
+const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'app/config/default.json'); // Keep reading default synchronously? No, try async.
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -16,12 +20,12 @@ interface DriveInfo {
     name: string;
     label: string;
     mount: string;
-    total: number;      // bytes
-    used: number;       // bytes
-    available: number;  // bytes
-    percentage: number; // 0-100
-    icon: string;       // icon name for serialization
-    found: boolean;     // whether the mount was actually found
+    total: number;
+    used: number;
+    available: number;
+    percentage: number;
+    icon: string;
+    found: boolean;
 }
 
 interface MountInfo {
@@ -34,29 +38,29 @@ interface MountInfo {
     percentage: number;
 }
 
-function getStorageConfig(): StorageConfig {
-    // If storage.json exists, use it
-    if (existsSync(CONFIG_PATH)) {
-        const data = readFileSync(CONFIG_PATH, 'utf-8');
-        return JSON.parse(data);
-    }
-
-    // Fall back to default.json → storage section
-    if (existsSync(DEFAULT_CONFIG_PATH)) {
-        const data = readFileSync(DEFAULT_CONFIG_PATH, 'utf-8');
-        const defaults = JSON.parse(data);
-        if (defaults.storage) {
-            return defaults.storage as StorageConfig;
+async function getStorageConfig(): Promise<StorageConfig> {
+    try {
+        if (existsSync(CONFIG_PATH)) {
+            const data = await fs.readFile(CONFIG_PATH, 'utf-8');
+            return JSON.parse(data);
         }
+
+        if (existsSync(DEFAULT_CONFIG_PATH)) {
+            const data = await fs.readFile(DEFAULT_CONFIG_PATH, 'utf-8');
+            const defaults = JSON.parse(data);
+            if (defaults.storage) {
+                return defaults.storage as StorageConfig;
+            }
+        }
+    } catch (error) {
+        console.error('Error reading storage config:', error);
     }
 
-    // Ultimate fallback
     return { drives: [] };
 }
 
-function saveStorageConfig(config: StorageConfig) {
-    // Always write to storage.json (never default.json)
-    writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+async function saveStorageConfig(config: StorageConfig) {
+    await fs.writeFile(CONFIG_PATH, JSON.stringify(config, null, 2));
 }
 
 async function getHostFilesystemInfo(): Promise<MountInfo[]> {
@@ -67,28 +71,27 @@ async function getHostFilesystemInfo(): Promise<MountInfo[]> {
     const isDocker = existsSync(hostProcPath);
 
     try {
-        const mountsContent = readFileSync(procPath, 'utf-8');
+        const mountsContent = await fs.readFile(procPath, 'utf-8');
         const lines = mountsContent.split('\n').filter(l => l.trim());
 
+        // Identifying actionable filesystems
         const realFs = lines.filter(line => {
             const parts = line.split(' ');
+            if (parts.length < 3) return false;
             const device = parts[0];
             const fstype = parts[2];
 
             return (
                 device.startsWith('/dev/') ||
-                fstype === 'nfs' ||
-                fstype === 'nfs4' ||
-                fstype === 'cifs' ||
-                fstype === 'fuse' ||
-                fstype === 'fuse.rclone'
+                ['nfs', 'nfs4', 'cifs', 'fuse', 'fuse.rclone'].includes(fstype)
             );
         });
 
-        for (const line of realFs) {
+        // Use Promise.all to run df checks in parallel (Performance improvement)
+        await Promise.all(realFs.map(async (line) => {
             const parts = line.split(' ');
             const device = parts[0];
-            let mount = parts[1];
+            const mount = parts[1];
             const fstype = parts[2];
 
             const hostRootPrefix = '/host/root';
@@ -99,10 +102,17 @@ async function getHostFilesystemInfo(): Promise<MountInfo[]> {
             try {
                 const dfPath = isDocker ? `${hostRootPrefix}${actualMount === '/' ? '' : actualMount}` : actualMount;
 
-                if (!existsSync(dfPath)) continue;
+                // Validate path exists before exec (Security/Stability)
+                try {
+                    await fs.access(dfPath);
+                } catch {
+                    return; // Skip if path not accessible
+                }
 
-                const dfOutput = execSync(`df -B1 "${dfPath}" 2>/dev/null | tail -1`, { encoding: 'utf-8' });
-                const dfParts = dfOutput.trim().split(/\s+/);
+                // Use execFile or careful exec. Since we need shell for pipes (tail), we use exec but sanitize quote.
+                // However, dfPath is from verified mount points.
+                const { stdout } = await execAsync(`df -B1 "${dfPath.replace(/"/g, '\\"')}" 2>/dev/null | tail -1`);
+                const dfParts = stdout.trim().split(/\s+/);
 
                 if (dfParts.length >= 5) {
                     const total = parseInt(dfParts[1], 10) || 0;
@@ -110,7 +120,11 @@ async function getHostFilesystemInfo(): Promise<MountInfo[]> {
                     const available = parseInt(dfParts[3], 10) || 0;
                     const percentage = parseInt(dfParts[4].replace('%', ''), 10) || 0;
 
-                    if (total > 0 && !mounts.find(m => m.mount === actualMount)) {
+                    if (total > 0) {
+                        // Push to thread-safe array (JS is single threaded event loop, so push is safe)
+                        // But we need to check duplicates?
+                        // Parallel execution means order isn't guaranteed, but that's fine.
+                        // We filter duplicates at the end or use a Map.
                         mounts.push({
                             device,
                             mount: actualMount,
@@ -122,15 +136,18 @@ async function getHostFilesystemInfo(): Promise<MountInfo[]> {
                         });
                     }
                 }
-            } catch {
-                continue;
+            } catch (e) {
+                // Ignore individual mount failures
             }
-        }
+        }));
+
     } catch (error) {
         console.error('Error reading mounts:', error);
     }
 
-    return mounts;
+    // Deduplicate logic if needed (simple unique by mount)
+    const uniqueMounts = Array.from(new Map(mounts.map(m => [m.mount, m])).values());
+    return uniqueMounts;
 }
 
 export async function GET() {
@@ -150,7 +167,7 @@ export async function GET() {
             }));
         }
 
-        const config = getStorageConfig();
+        const config = await getStorageConfig();
         const drives: DriveInfo[] = [];
 
         for (const configDrive of config.drives) {
@@ -183,7 +200,6 @@ export async function GET() {
                     found: false,
                 });
             } else {
-                // Return configured but missing drive with error state
                 drives.push({
                     id: configDrive.id,
                     name: configDrive.name,
@@ -223,7 +239,13 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         const config: StorageConfig = await request.json();
-        saveStorageConfig(config);
+
+        // Basic Validation
+        if (!config || !Array.isArray(config.drives)) {
+            return NextResponse.json({ error: 'Invalid config format' }, { status: 400 });
+        }
+
+        await saveStorageConfig(config);
         return NextResponse.json({ success: true });
     } catch (error: any) {
         console.error('Error saving storage config:', error);

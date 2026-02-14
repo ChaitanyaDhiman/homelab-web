@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 export const dynamic = 'force-dynamic';
 
@@ -9,32 +13,42 @@ const TRIGGER_FILE = '/data/trigger-refresh';
 
 /**
  * POST /api/updates/refresh
- * Triggers an immediate update check by creating a trigger file
- * that the update-agent watches for.
+ * Triggers an immense update check.
+ * - Docker: Creates a trigger file for the sidecar agent.
+ * - Host: Runs `apt-get update` directly.
  */
 export async function POST() {
     const isDocker = fs.existsSync('/.dockerenv');
 
-    if (!isDocker) {
-        // On host, we don't use the agent - just return success
-        // The main /api/updates endpoint will run apt-get directly
-        return NextResponse.json({
-            success: true,
-            message: 'Running on host - updates checked directly',
-            timestamp: new Date().toISOString(),
-        });
-    }
-
     try {
-        // Create the trigger file - agent will detect and run update check
+        if (!isDocker) {
+            // On host, run apt-get update directly
+            // This might take time (10-30s), so we await it.
+            // Ensure we catch errors so we don't crash
+            try {
+                await execAsync('apt-get update');
+                return NextResponse.json({
+                    success: true,
+                    message: 'Package list updated successfully',
+                    timestamp: new Date().toISOString(),
+                });
+            } catch (error: any) {
+                console.error('Failed to update package list:', error);
+                return NextResponse.json({
+                    success: false,
+                    error: 'Failed to update package list: ' + error.message,
+                    timestamp: new Date().toISOString(),
+                }, { status: 500 });
+            }
+        }
+
+        // Docker Mode
         const triggerDir = path.dirname(TRIGGER_FILE);
 
-        // Ensure directory exists
         if (!fs.existsSync(triggerDir)) {
             fs.mkdirSync(triggerDir, { recursive: true });
         }
 
-        // Write trigger file with timestamp
         fs.writeFileSync(TRIGGER_FILE, new Date().toISOString());
 
         return NextResponse.json({

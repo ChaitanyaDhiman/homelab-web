@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import si from 'systeminformation';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export async function GET() {
     try {
@@ -15,13 +15,15 @@ export async function GET() {
             si.networkStats(),
         ]);
 
-        // Get temperature and fan speed from sensors command (single call for both)
+        // Get temperature and fan speed from sensors command
         let fanSpeed = 'Off';
         let avgTemp = 0;
         let cpuCoreTemps: number[] = [];
 
         try {
-            const { stdout: sensorsOutput } = await execAsync('sensors');
+            // Unsafe: await execAsync('sensors'); 
+            // Safe: use execFile which does not spawn a shell
+            const { stdout: sensorsOutput } = await execFileAsync('sensors', []);
 
             // Parse CPU core temperatures
             const coreMatches = sensorsOutput.matchAll(/Core\s+\d+:\s+\+?(\d+(?:\.\d+)?)/gi);
@@ -43,7 +45,7 @@ export async function GET() {
                 }
             }
 
-            // Parse fan speed from dell_smm or other adapters
+            // Parse fan speed
             const fanMatch = sensorsOutput.match(/(?:Processor Fan|Video Fan|CPU Fan|System Fan):\s*(\d+)\s*RPM/i);
 
             if (fanMatch) {
@@ -62,7 +64,7 @@ export async function GET() {
                     fanSpeed = 'Max';
                 }
             } else if (avgTemp > 0) {
-                // Fallback: estimate fan speed from temperature if RPM not available
+                // Fallback: estimate fan speed from temperature
                 if (avgTemp < 45) fanSpeed = 'Off';
                 else if (avgTemp < 60) fanSpeed = 'Low';
                 else if (avgTemp < 75) fanSpeed = 'Mid';
@@ -71,19 +73,12 @@ export async function GET() {
             }
         } catch (sensorError) {
             console.error('Failed to read from sensors command:', sensorError);
-            // Fallback to systeminformation for temperature only
+            // Fallback to systeminformation for temperature
             try {
                 const temp = await si.cpuTemperature();
                 avgTemp = temp.cores.length > 0
                     ? Math.round(temp.cores.reduce((a, b) => a + b, 0) / temp.cores.length)
                     : temp.main;
-
-                // Estimate fan speed from temperature
-                if (avgTemp < 45) fanSpeed = 'Off';
-                else if (avgTemp < 60) fanSpeed = 'Low';
-                else if (avgTemp < 75) fanSpeed = 'Mid';
-                else if (avgTemp < 80) fanSpeed = 'High';
-                else fanSpeed = 'Max';
             } catch (tempError) {
                 console.error('Failed to read temperature:', tempError);
             }
@@ -98,9 +93,11 @@ export async function GET() {
         };
 
         try {
-            const { stdout } = await execAsync(
-                'nvidia-smi --query-gpu=name,utilization.gpu,memory.used,memory.total,temperature.gpu --format=csv,noheader,nounits'
-            );
+            // Safer execution with args array logic
+            const { stdout } = await execFileAsync('nvidia-smi', [
+                '--query-gpu=name,utilization.gpu,memory.used,memory.total,temperature.gpu',
+                '--format=csv,noheader,nounits'
+            ]);
 
             if (stdout) {
                 const parts = stdout.trim().split(',').map(s => s.trim());
@@ -130,8 +127,8 @@ export async function GET() {
                         temperature: gpuController.temperatureGpu || 0,
                     };
                 }
-            } catch (siError) {
-                console.error('GPU detection failed:', siError);
+            } catch {
+                // Ignore failure
             }
         }
 

@@ -51,14 +51,15 @@ async function safeExec(command: string, fallback: string = ''): Promise<string>
  */
 function readAgentStatus(): AgentStatus | null {
     try {
-        if (!fs.existsSync(UPDATE_STATUS_FILE)) {
-            return null;
+        // Handle both /data location (Docker volume) and relative path if needed
+        if (fs.existsSync(UPDATE_STATUS_FILE)) {
+            const content = fs.readFileSync(UPDATE_STATUS_FILE, 'utf-8');
+            return JSON.parse(content) as AgentStatus;
         }
-        const content = fs.readFileSync(UPDATE_STATUS_FILE, 'utf-8');
-        return JSON.parse(content) as AgentStatus;
     } catch {
-        return null;
+        // ignore
     }
+    return null;
 }
 
 /**
@@ -73,13 +74,13 @@ async function getUpgradeInfo(): Promise<UpgradeInfo> {
         if (agentStatus) {
             return agentStatus.upgrades;
         }
-        // Fallback if agent hasn't written yet
         return { total: 0, security: 0, allPackages: [], securityPackages: [] };
     }
 
-    // On host, run apt-get directly
+    // On host, run apt-get upgrade --dry-run directly (NO apt-get update)
     try {
-        await execAsync('apt-get update 2>/dev/null || true');
+        // Removed: await execAsync('apt-get update 2>/dev/null || true');
+
         const upgradeOutput = await safeExec(
             `apt-get upgrade --dry-run 2>/dev/null | grep "^Inst"`
         );
@@ -184,7 +185,7 @@ async function getLastUpdateLog(): Promise<string[]> {
         }
     }
 
-    return logs.length > 0 ? logs : ['No update logs available'];
+    return logs.length > 0 ? logs : ['No update logs available. Click refresh to check.'];
 }
 
 /**
