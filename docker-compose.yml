@@ -1,9 +1,9 @@
 services:
-  nextjs_dashboard:
+  nexlab:
     build:
       context: .
       dockerfile: dockerfile
-    container_name: nextjs_dashboard
+    container_name: nexlab
     restart: unless-stopped
     expose:
       - "3000"
@@ -21,6 +21,7 @@ services:
               count: all
               capabilities: [ gpu ]
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - /var/run:/host/var/run:ro
       - /sys/class/power_supply:/sys/class/power_supply:ro
       - /sys/class/hwmon:/sys/class/hwmon:ro

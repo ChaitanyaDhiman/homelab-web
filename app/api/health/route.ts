@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { loadAppsConfig } from '@/lib/appsConfig';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,26 +16,15 @@ interface App {
     healthCheckUrl?: string;
 }
 
-interface AppsConfig {
-    uncategorizedApps: App[];
-    categories: {
-        id: string;
-        name: string;
-        description: string;
-        apps: App[];
-    }[];
-}
-
 export async function GET() {
     try {
-        // Read apps.json configuration
-        const appsPath = join(process.cwd(), 'app/config/apps.json');
-        const appsData: AppsConfig = JSON.parse(readFileSync(appsPath, 'utf-8'));
+        // Load configuration using shared utility with fallback logic
+        const appsData = loadAppsConfig();
 
         // Collect all apps from categories and uncategorized
         const allApps: App[] = [
-            ...appsData.uncategorizedApps,
-            ...appsData.categories.flatMap(cat => cat.apps)
+            ...(appsData.uncategorizedApps || []),
+            ...(appsData.categories || []).flatMap(cat => cat.apps)
         ];
 
         // Filter apps that have either a health check URL or a standard URL

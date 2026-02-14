@@ -18,7 +18,7 @@ async function getWidgetsConfig() {
         const data = await fs.readFile(DEFAULT_CONFIG_PATH, 'utf-8');
         const defaults = JSON.parse(data);
         if (defaults.widgets) {
-            return defaults.widgets; // { widgets: [...] }
+            return { widgets: defaults.widgets };
         }
     }
 
