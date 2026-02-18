@@ -1,6 +1,7 @@
 {
   "name": "nexlab",
   "version": "1.0.0",
+  "repository": "https://github.com/ChaitanyaDhiman/homelab-web",
   "private": true,
   "scripts": {
     "dev": "next dev -H 0.0.0.0 -p 3000",

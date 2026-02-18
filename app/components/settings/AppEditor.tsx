@@ -63,7 +63,11 @@ export function AppEditor({ app, onSave, onCancel }: AppEditorProps) {
             setIsFavorite(app.isFavorite || false);
 
             // Detect icon type
-            if (app.icon.startsWith('http://') || app.icon.startsWith('https://')) {
+            if (app.icon.startsWith('http://') ||
+                app.icon.startsWith('https://') ||
+                app.icon.startsWith('/') ||
+                app.icon.startsWith('data:') ||
+                app.icon.trim().startsWith('<svg')) {
                 setIconMode('url');
                 setIconUrl(app.icon);
             } else if (CUSTOM_ICONS.includes(app.icon)) {
@@ -114,9 +118,13 @@ export function AppEditor({ app, onSave, onCancel }: AppEditorProps) {
     // Render icon preview
     const renderIconPreview = () => {
         if (iconMode === 'url' && iconUrl) {
+            let src = iconUrl;
+            if (iconUrl.trim().startsWith('<svg')) {
+                src = `data:image/svg+xml;utf8,${encodeURIComponent(iconUrl)}`;
+            }
             return (
                 <div className="w-5 h-5 relative">
-                    <Image src={iconUrl} alt="Icon" fill className="object-contain" />
+                    <Image src={src} alt="Icon" fill className="object-contain" unoptimized />
                 </div>
             );
         }
@@ -292,17 +300,23 @@ export function AppEditor({ app, onSave, onCancel }: AppEditorProps) {
                                             <div className="relative">
                                                 <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                                                 <input
-                                                    type="url"
+                                                    type="text"
                                                     value={iconUrl}
                                                     onChange={(e) => setIconUrl(e.target.value)}
-                                                    className="w-full pl-10 pr-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary text-sm"
-                                                    placeholder="https://example.com/icon.svg"
+                                                    className="w-full pl-10 pr-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary text-sm font-mono"
+                                                    placeholder="https://... or /icons/..."
                                                 />
                                             </div>
                                             {iconUrl && (
                                                 <div className="flex items-center gap-2 p-3 bg-white/5 rounded-lg">
                                                     <div className="w-8 h-8 relative">
-                                                        <Image src={iconUrl} alt="Preview" fill className="object-contain" />
+                                                        <Image
+                                                            src={iconUrl.trim().startsWith('<svg') ? `data:image/svg+xml;utf8,${encodeURIComponent(iconUrl)}` : iconUrl}
+                                                            alt="Preview"
+                                                            fill
+                                                            className="object-contain"
+                                                            unoptimized
+                                                        />
                                                     </div>
                                                     <span className="text-sm text-gray-400">Preview</span>
                                                 </div>

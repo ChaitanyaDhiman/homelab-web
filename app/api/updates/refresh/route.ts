@@ -22,11 +22,20 @@ export async function POST() {
 
     try {
         if (!isDocker) {
-            // On host, run apt-get update directly
+            // On host, try to run apt-get update directly
+            // Try with sudo first, then without if that fails (though without usually fails for update)
             // This might take time (10-30s), so we await it.
-            // Ensure we catch errors so we don't crash
             try {
-                await execAsync('apt-get update');
+                // Try sudo non-interactive first
+                try {
+                    await execAsync('sudo -n apt-get update');
+                } catch (sudoError) {
+                    // Fallback to normal command if sudo fails or not available
+                    // This will likely fail with permission denied, but let's try
+                    console.log('sudo apt-get update failed, trying without sudo:', sudoError);
+                    await execAsync('apt-get update');
+                }
+
                 return NextResponse.json({
                     success: true,
                     message: 'Package list updated successfully',
@@ -35,11 +44,16 @@ export async function POST() {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (error: any) {
                 console.error('Failed to update package list:', error);
+
+                const isPermissionError = error.message.includes('Permission denied') || error.message.includes('E: Could not open lock file');
+
                 return NextResponse.json({
                     success: false,
-                    error: 'Failed to update package list: ' + error.message,
+                    error: isPermissionError
+                        ? 'Permission denied. Please configure passwordless sudo for apt-get update: "username ALL=(ALL) NOPASSWD: /usr/bin/apt-get update"'
+                        : 'Failed to update package list: ' + error.message,
                     timestamp: new Date().toISOString(),
-                }, { status: 500 });
+                }, { status: isPermissionError ? 403 : 500 });
             }
         }
 

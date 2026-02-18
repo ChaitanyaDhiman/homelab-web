@@ -1,12 +1,13 @@
 'use client';
 
-import { Clock12, Clock4, Globe, Calendar, Eye, Sun, LayoutGrid, HardDrive } from 'lucide-react';
+import { Clock12, Clock4, Globe, Calendar, Eye, Sun, LayoutGrid, HardDrive, Info } from 'lucide-react';
 import { useSettings } from '@/app/contexts/SettingsContext';
 import { useState, useEffect } from 'react';
 import { AppsManager } from '@/app/components/settings/AppsManager';
 import { StorageManager } from '@/app/components/settings/StorageManager';
+import { AboutSection } from '@/app/components/settings/AboutSection';
 
-type SettingsTab = 'appearance' | 'apps' | 'storage';
+type SettingsTab = 'appearance' | 'apps' | 'storage' | 'about';
 
 interface SettingsViewProps {
     initialTab?: SettingsTab;
@@ -108,6 +109,21 @@ export function SettingsView({ initialTab = 'appearance' }: SettingsViewProps) {
                         Storage
                     </div>
                     {activeTab === 'storage' && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                    )}
+                </button>
+                <button
+                    onClick={() => setActiveTab('about')}
+                    className={`px-4 py-3 font-medium transition-colors relative whitespace-nowrap ${activeTab === 'about'
+                        ? 'text-primary'
+                        : 'text-gray-400 hover:text-white'
+                        }`}
+                >
+                    <div className="flex items-center gap-2">
+                        <Info className="w-4 h-4" />
+                        About
+                    </div>
+                    {activeTab === 'about' && (
                         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
                     )}
                 </button>
@@ -246,6 +262,7 @@ export function SettingsView({ initialTab = 'appearance' }: SettingsViewProps) {
 
             {activeTab === 'apps' && <AppsManager />}
             {activeTab === 'storage' && <StorageManager />}
+            {activeTab === 'about' && <AboutSection />}
         </div>
     );
 }

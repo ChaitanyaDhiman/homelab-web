@@ -151,7 +151,7 @@ export function Sidebar({ activeTab, onTabChange, isExpanded, onToggleExpand }: 
                                 <span className="font-medium">Version {process.env.NEXT_PUBLIC_APP_VERSION}</span>
                                 {updateAvailable && (
                                     <a
-                                        href="https://github.com/chaitanyadhiman/homelab-web/releases"
+                                        href={process.env.NEXT_PUBLIC_GIT_URL + '/releases'}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-primary hover:underline flex items-center gap-1 mt-0.5"

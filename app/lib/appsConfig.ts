@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { AppsConfig } from '@/app/types/apps';
 import * as LucideIcons from 'lucide-react';
+import { getIconComponent as getIconComponentFromUtils } from './iconUtils';
 
 const APPS_CONFIG_PATH = path.join(process.cwd(), 'config/apps.json');
 const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'config/default.json');
@@ -84,12 +85,14 @@ function getDefaultConfig(): AppsConfig {
     };
 }
 
+// Re-export from iconUtils to maintain backward compatibility if needed, 
+// strictly speaking we should just remove it and update imports, but to be safe:
+
 /**
  * Maps icon name to Lucide icon component
+ * @deprecated Use app/lib/iconUtils.ts instead
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getIconComponent(iconName: string): any {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const icons = LucideIcons as any;
-    return icons[iconName] || LucideIcons.Box;
+    return getIconComponentFromUtils(iconName);
 }

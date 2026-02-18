@@ -22,7 +22,7 @@ export async function GET() {
             });
         }
 
-        const response = await fetch('https://api.github.com/repos/chaitanyadhiman/homelab-web/releases/latest', {
+        const response = await fetch(process.env.NEXT_PUBLIC_GIT_URL + '/releases/latest', {
             headers: {
                 'Accept': 'application/vnd.github.v3+json',
                 'User-Agent': 'Homelab-Web-Update-Checker'
