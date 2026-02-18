@@ -22,7 +22,24 @@ export async function GET() {
             });
         }
 
-        const response = await fetch(process.env.NEXT_PUBLIC_GIT_URL + '/releases/latest', {
+        // Parse the git URL to get owner and repo
+        // Expected format: https://github.com/owner/repo
+        const gitUrl = process.env.NEXT_PUBLIC_GIT_URL;
+        const match = gitUrl?.match(/github\.com\/([^/]+)\/([^/]+)/);
+
+        if (!match) {
+            console.error('Invalid git URL format:', gitUrl);
+            return NextResponse.json({
+                updateAvailable: false,
+                currentVersion,
+                error: 'Invalid repository configuration'
+            });
+        }
+
+        const [, owner, repo] = match;
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/releases/latest`;
+
+        const response = await fetch(apiUrl, {
             headers: {
                 'Accept': 'application/vnd.github.v3+json',
                 'User-Agent': 'Homelab-Web-Update-Checker'
