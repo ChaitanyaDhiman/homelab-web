@@ -1,12 +1,11 @@
 
-import { useEffect, useState } from 'react';
 import { WidgetProps } from '@/app/types/widgets';
 import { BaseWidget } from '@/app/components/widgets/BaseWidget';
 import { useSystem } from '@/app/contexts/SystemContext';
 import { ArrowDown, ArrowUp, Activity } from 'lucide-react';
 
-export function NetworkWidget({ widget, isEditMode, onRemove }: WidgetProps) {
-    const { stats, loading } = useSystem();
+export function NetworkWidget({ isEditMode, onRemove }: WidgetProps) {
+    const { stats } = useSystem();
 
     // Stats are in bytes/sec? systeminformation.networkStats returns bytes/sec usually?
     // si docs: rx_sec: transfer rate (bytes/sec)

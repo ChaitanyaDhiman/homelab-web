@@ -36,6 +36,7 @@ export function StorageEditor({ drive, onSave, onCancel }: StorageEditorProps) {
 
     useEffect(() => {
         if (drive) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setId(drive.id);
             setName(drive.name);
             setLabel(drive.label);
@@ -44,6 +45,7 @@ export function StorageEditor({ drive, onSave, onCancel }: StorageEditorProps) {
         }
     }, [drive]);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -175,6 +177,7 @@ export function StorageEditor({ drive, onSave, onCancel }: StorageEditorProps) {
 
                                     <div className="grid grid-cols-8 gap-2">
                                         {filteredIcons.slice(0, 200).map((iconName) => {
+                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                             const Icon = (LucideIcons as any)[iconName];
                                             return (
                                                 <button

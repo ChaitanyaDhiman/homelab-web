@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { X, Plus, Search } from 'lucide-react';
-import { WIDGET_METADATA, getWidgetIcon } from '@/app/lib/widgetRegistry';
+import { WIDGET_METADATA } from '@/app/lib/widgetRegistry';
 import { WidgetType, WidgetMetadata } from '@/app/types/widgets';
 import { DateTimeWidget } from '@/app/components/widgets/datetime/DateTimeWidget';
 import { SystemStatsWidget } from '@/app/components/widgets/system-stats/SystemStatsWidget';
@@ -12,7 +12,7 @@ import { UpdatesWidget } from '@/app/components/widgets/updates/UpdatesWidget';
 import { ServiceHealthWidget } from '@/app/components/widgets/service-health/ServiceHealthWidget';
 import { AppWidget } from '@/app/components/widgets/app/AppWidget';
 import { FrequentAppsWidget } from '@/app/components/widgets/app/FrequentAppsWidget';
-import { CpuGpuGaugeWidget } from '@/app/components/widgets/system/CpuGpuGauge';
+import { CpuGpuGauge } from '@/app/components/widgets/system/CpuGpuGauge';
 import { CpuTempWidget } from '@/app/components/widgets/system/CpuTempCircle';
 import { GpuTempWidget } from '@/app/components/widgets/system/GpuTempCircle';
 import { StorageBarWidget } from '@/app/components/widgets/storage/StorageBar';
@@ -32,7 +32,7 @@ const PREVIEW_COMPONENTS: Record<string, React.ComponentType<any>> = {
     'service-health': ServiceHealthWidget,
     'app': AppWidget,
     'frequent-apps': FrequentAppsWidget,
-    'cpu-gpu-gauge': CpuGpuGaugeWidget,
+    'cpu-gpu-gauge': CpuGpuGauge,
     'cpu-temp-circle': CpuTempWidget,
     'gpu-temp-circle': GpuTempWidget,
     'storage-bar': StorageBarWidget,
@@ -42,11 +42,12 @@ const PREVIEW_COMPONENTS: Record<string, React.ComponentType<any>> = {
 };
 
 interface WidgetPickerProps {
-    onAddWidget: (type: WidgetType) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onAdd: (type: WidgetType, size: { w: number, h: number }, data?: any) => void;
     onClose: () => void;
 }
 
-export function WidgetPicker({ onAddWidget, onClose }: WidgetPickerProps) {
+export function WidgetPicker({ onAdd, onClose }: WidgetPickerProps) {
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -150,7 +151,7 @@ export function WidgetPicker({ onAddWidget, onClose }: WidgetPickerProps) {
                                     <button
                                         key={widget.type}
                                         onClick={() => {
-                                            onAddWidget(widget.type);
+                                            onAdd(widget.type, widget.defaultSize, { ...widget, id: Date.now().toString() });
                                             onClose();
                                         }}
                                         className="group relative flex flex-col bg-white/5 border border-white/5 rounded-xl overflow-hidden hover:border-primary/50 hover:bg-white/10 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 ring-0 focus:ring-2 ring-primary/50 outline-none w-full aspect-video"

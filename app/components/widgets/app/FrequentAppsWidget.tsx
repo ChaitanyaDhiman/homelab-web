@@ -14,6 +14,7 @@ export function FrequentAppsWidget({ widget, isEditMode, onRemove }: WidgetProps
     useEffect(() => {
         // If in preview mode (id='preview'), show mock data if apps not loaded or just generic
         if (widget.id === 'preview') {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setFrequentApps(apps.slice(0, 4));
             return;
         }

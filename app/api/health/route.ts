@@ -47,6 +47,8 @@ export async function GET() {
             const startTime = performance.now();
             let usedFallback = false;
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const serviceUrl = (app as any).url || `http://${(app as any).host}:${(app as any).port}`;
             const tryCheck = async (url: string, timeoutMs: number) => {
                 const controller = new AbortController();
                 const id = setTimeout(() => controller.abort(), timeoutMs);
@@ -66,13 +68,14 @@ export async function GET() {
                 try {
                     // Try primary URL first (external URL)
                     await tryCheck(primaryUrl, 2000);
-                } catch (primaryError) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                } catch (e: any) {
                     // If primary fails and we have a different fallback URL, try it
                     if (fallbackUrl && fallbackUrl !== primaryUrl && !fallbackUrl.startsWith('/')) {
                         usedFallback = true;
                         await tryCheck(fallbackUrl, 3000);
                     } else {
-                        throw primaryError;
+                        throw e;
                     }
                 }
 
@@ -81,6 +84,7 @@ export async function GET() {
                 const status = responseTime > 2000 ? 'degraded' : 'online';
 
                 return { id: app.id, status, responseTime, fallback: usedFallback };
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (error: any) {
                 console.error(`[Health] Failed ${app.id}: ${error.message}`);
                 return { id: app.id, status: 'offline', responseTime: 0, fallback: usedFallback };

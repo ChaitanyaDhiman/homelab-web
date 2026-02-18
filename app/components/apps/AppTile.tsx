@@ -1,5 +1,6 @@
 "use client";
 
+
 import { App } from "@/app/types/apps";
 import { motion } from "framer-motion";
 import { ExternalLink } from "lucide-react";
@@ -13,6 +14,7 @@ interface AppTileProps {
 }
 
 export function AppTile({ app, tileSize = 'medium' }: AppTileProps) {
+    // eslint-disable-next-line react/no-unstable-nested-components
     const IconComponent = getIconComponent(app.icon);
     const isSmall = tileSize === 'small';
 

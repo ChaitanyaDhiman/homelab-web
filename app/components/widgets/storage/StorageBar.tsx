@@ -1,11 +1,10 @@
-
 import { WidgetProps } from '@/app/types/widgets';
 import { BaseWidget } from '@/app/components/widgets/BaseWidget';
 import { useStorage } from '@/app/hooks/useStorage';
 import { HardDrive } from 'lucide-react';
 
-export function StorageBarWidget({ widget, isEditMode, onRemove }: WidgetProps) {
-    const { data, loading } = useStorage();
+export function StorageBarWidget({ isEditMode, onRemove }: WidgetProps) {
+    const { data } = useStorage();
 
     // Calculate total
     const totalBytes = data?.drives.reduce((acc, d) => acc + d.total, 0) || 0;

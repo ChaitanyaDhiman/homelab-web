@@ -6,16 +6,17 @@ import { WidgetGrid } from '@/app/components/home/WidgetGrid';
 import { WidgetPicker } from '@/app/components/home/WidgetPicker';
 import { SearchBar } from '@/app/components/home/SearchBar';
 import { WelcomeHeader } from '@/app/components/home/WelcomeHeader';
-import { Edit3, Check, Plus, Loader2, X } from 'lucide-react';
+import { Edit3, Check, Plus, Loader2 } from 'lucide-react';
 import { WidgetType } from '@/app/types/widgets';
 import { WIDGET_METADATA } from '@/app/lib/widgetRegistry';
 
 export function HomeView() {
-    const { config, isEditMode, setEditMode, addWidget, saveConfig, loading } = useWidgets();
+    const { config, isEditMode, setEditMode, addWidget, loading } = useWidgets();
     const [showWidgetPicker, setShowWidgetPicker] = useState(false);
-    const [saving, setSaving] = useState(false);
 
-    const handleAddWidget = (type: WidgetType) => {
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+    const handleAddWidget = (type: WidgetType, _size: { w: number, h: number }, _data?: any) => {
         const metadata = WIDGET_METADATA[type];
 
         // Check for duplicates if singleton
@@ -40,18 +41,7 @@ export function HomeView() {
         addWidget(newWidget);
     };
 
-    const handleSave = async () => {
-        setSaving(true);
-        try {
-            await saveConfig();
-            setEditMode(false);
-        } catch (error) {
-            console.error('Failed to save config:', error);
-            alert('Failed to save configuration');
-        } finally {
-            setSaving(false);
-        }
-    };
+
 
     if (loading) {
         return (
@@ -139,7 +129,7 @@ export function HomeView() {
             {/* Widget Picker Modal */}
             {showWidgetPicker && (
                 <WidgetPicker
-                    onAddWidget={handleAddWidget}
+                    onAdd={handleAddWidget}
                     onClose={() => setShowWidgetPicker(false)}
                 />
             )}

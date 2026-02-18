@@ -15,7 +15,7 @@ interface WeatherData {
     location: string;
 }
 
-export function WeatherWidget({ widget, isEditMode, onRemove }: WidgetProps) {
+export function WeatherWidget({ isEditMode, onRemove }: WidgetProps) {
     const [weather, setWeather] = useState<WeatherData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

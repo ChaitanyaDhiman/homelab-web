@@ -30,7 +30,7 @@ export async function GET() {
         // Get temperature and fan speed from sensors command
         let fanSpeed = 'Off';
         let avgTemp = 0;
-        let cpuCoreTemps: number[] = [];
+        const cpuCoreTemps: number[] = [];
 
         try {
             // Unsafe: await execAsync('sensors'); 
@@ -123,25 +123,8 @@ export async function GET() {
                     };
                 }
             }
-        } catch (nvidiaError) {
-            try {
-                const graphics = await si.graphics();
-                const gpuController = graphics.controllers.find(gpu =>
-                    gpu.vendor?.toLowerCase().includes('nvidia')
-                ) || graphics.controllers[0];
-
-                if (gpuController) {
-                    gpuData = {
-                        name: gpuController.model || 'N/A',
-                        utilization: gpuController.utilizationGpu || 0,
-                        memory: gpuController.memoryUsed || 0,
-                        memoryTotal: gpuController.memoryTotal || 0,
-                        temperature: gpuController.temperatureGpu || 0,
-                    };
-                }
-            } catch {
-                // Ignore failure
-            }
+        } catch {
+            // Ignore nvidia errors
         }
 
         return NextResponse.json({

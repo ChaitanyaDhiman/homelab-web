@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { AppsConfig, Category, App } from "@/app/types/apps";
-import { Plus, Save, X, Edit2, Trash2, Loader2, GripVertical, FolderMinus, FolderPlus } from "lucide-react";
+import { Plus, Save, Edit2, Trash2, Loader2, GripVertical, FolderMinus, FolderPlus } from "lucide-react";
 import { CategoryEditor } from "./CategoryEditor";
 import { AppEditor } from "./AppEditor";
 import {
@@ -14,7 +14,6 @@ import {
     useSensors,
     DragEndEvent,
     DragOverEvent,
-    DragOverlay,
     useDroppable,
 } from "@dnd-kit/core";
 import {
@@ -269,6 +268,7 @@ export function AppsManager() {
     const [editingCategory, setEditingCategory] = useState<Category | null>(null);
     const [editingApp, setEditingApp] = useState<{ categoryId: string | null; app: App | null } | null>(null);
     const [showCategoryEditor, setShowCategoryEditor] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [activeId, setActiveId] = useState<string | null>(null);
     const [overId, setOverId] = useState<string | null>(null);
 
@@ -320,6 +320,7 @@ export function AppsManager() {
         }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleDragStart = (event: any) => {
         setActiveId(event.active.id);
     };
@@ -410,7 +411,7 @@ export function AppsManager() {
     const moveAppBetweenCategories = (sourceCategoryId: string | null, destinationCategoryId: string | null, app: App) => {
         if (!config) return;
 
-        let newConfig = { ...config };
+        const newConfig = { ...config };
 
         // Remove from source
         if (sourceCategoryId === null) {
@@ -775,7 +776,7 @@ export function AppsManager() {
                                         })}
                                     </div>
                                     <p className="text-xs text-gray-500 italic">
-                                        Tip: Edit an app and toggle "Mark as Favorite" to add or remove from this section
+                                        Tip: Edit an app and toggle &quot;Mark as Favorite&quot; to add or remove from this section
                                     </p>
                                 </div>
                             );
@@ -811,7 +812,7 @@ export function AppsManager() {
                             >
                                 {overId === 'uncategorized' && (
                                     <div className="text-center py-4 mb-4">
-                                        <p className="text-primary font-medium">Drop app here to move to Quick Access</p>
+                                        <p className="text-gray-400">Drag apps here to remove them from the category, or click the &quot;X&quot; button.</p>
                                     </div>
                                 )}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

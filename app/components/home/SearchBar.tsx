@@ -4,13 +4,13 @@ import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { useApps } from '@/app/hooks/useApps';
 import { usageTracker } from '@/app/lib/usageTracker';
-import { useRouter } from 'next/navigation';
+
 
 export function SearchBar() {
     const [query, setQuery] = useState('');
     const [isOpen, setIsOpen] = useState(false);
     const { apps, loading } = useApps();
-    const router = useRouter();
+
 
     const filteredApps = apps.filter(app =>
         app.name.toLowerCase().includes(query.toLowerCase()) ||

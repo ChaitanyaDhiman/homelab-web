@@ -15,7 +15,7 @@ interface StorageDrive {
     found?: boolean;
 }
 
-export function StorageWidget({ widget, isEditMode, onRemove }: WidgetProps) {
+export function StorageWidget({ isEditMode, onRemove }: WidgetProps) {
     const [drives, setDrives] = useState<StorageDrive[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -27,6 +27,7 @@ export function StorageWidget({ widget, isEditMode, onRemove }: WidgetProps) {
                 const result = await response.json();
                 // Filter out drives that are not found (invalid configuration)
                 // They will still be visible in Settings for fixing
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const validDrives = (result.data?.drives || []).filter((d: any) => d.found !== false);
                 setDrives(validDrives);
             } catch (error) {

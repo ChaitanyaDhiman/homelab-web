@@ -223,6 +223,7 @@ export function SettingsView({ initialTab = 'appearance' }: SettingsViewProps) {
                                     return (
                                         <button
                                             key={option.id}
+                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                             onClick={() => setDateFormat(option.id as any)}
                                             className={`
                                                 flex flex-col items-start p-4 rounded-xl transition-all cursor-pointer border-2 w-full

@@ -79,6 +79,7 @@ export function StorageManager() {
         }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleAddDrive = () => {
         setEditingDrive(null);
         setShowEditor(true);

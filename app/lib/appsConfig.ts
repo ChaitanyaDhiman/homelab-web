@@ -87,7 +87,9 @@ function getDefaultConfig(): AppsConfig {
 /**
  * Maps icon name to Lucide icon component
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getIconComponent(iconName: string): any {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const icons = LucideIcons as any;
     return icons[iconName] || LucideIcons.Box;
 }

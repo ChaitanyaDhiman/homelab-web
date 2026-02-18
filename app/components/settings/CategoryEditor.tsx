@@ -17,6 +17,7 @@ export function CategoryEditor({ category, onSave, onCancel }: CategoryEditorPro
 
     useEffect(() => {
         if (category) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setId(category.id);
             setName(category.name);
             setDescription(category.description || "");

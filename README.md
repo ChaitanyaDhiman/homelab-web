@@ -70,7 +70,26 @@ See the [Documentation](/docs) folder for details on [Widgets](/docs/widgets.md)
 - **Node.js** 18+ and npm/yarn/pnpm
 - **Docker** and **Docker Compose** (for running services)
 
-### Installation
+### System Requirements
+
+-   **Operating System**: Linux (Required for system stats, updates, and battery monitoring)
+    -   *Note: MacOS/Windows are NOT supported for advanced system monitoring features.*
+-   **Node.js**: v18+
+-   **Docker**: Required for container management features.
+
+## Compatibility Matrix
+
+| Feature | Linux | Windows | MacOS |
+| :--- | :---: | :---: | :---: |
+| Dashboard UI | ✅ | ✅ | ✅ |
+| App Management | ✅ | ✅ | ✅ |
+| System Stats (CPU/Mem) | ✅ | ⚠️ (Limited) | ⚠️ (Limited) |
+| Docker Management | ✅ | ✅ | ✅ |
+| System Updates (APT) | ✅ | ❌ | ❌ |
+| Battery Monitoring | ✅ | ❌ | ❌ |
+| Storage Monitoring | ✅ | ❌ | ❌ |
+
+## Installation
 
 1. **Clone the repository**:
    ```bash

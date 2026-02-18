@@ -11,6 +11,7 @@ export function GpuTempWidget({ widget, isEditMode, onRemove }: WidgetProps) {
 
     useEffect(() => {
         if (stats) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setHistory(prev => {
                 const newData = [...prev, { value: stats.gpu?.utilization || 0 }];
                 if (newData.length > 20) newData.shift();

@@ -32,6 +32,7 @@ export async function POST() {
                     message: 'Package list updated successfully',
                     timestamp: new Date().toISOString(),
                 });
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (error: any) {
                 console.error('Failed to update package list:', error);
                 return NextResponse.json({

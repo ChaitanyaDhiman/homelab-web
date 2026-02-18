@@ -5,11 +5,12 @@ import { BaseWidget } from '@/app/components/widgets/BaseWidget';
 import { RadialBarChart, RadialBar, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 import { useSystem } from '@/app/contexts/SystemContext';
 
-export function CpuGpuGaugeWidget({ widget, isEditMode, onRemove }: WidgetProps) {
+export function CpuGpuGauge({ isEditMode, onRemove }: WidgetProps) {
     const { stats, loading } = useSystem();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 

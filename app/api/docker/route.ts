@@ -89,7 +89,7 @@ export async function GET() {
                                     if (container) {
                                         container.updated = formatted;
                                     }
-                                } catch (e) {
+                                } catch {
                                     // ignore date parse error
                                 }
                             }
@@ -132,6 +132,7 @@ export async function GET() {
                                 container.memoryLimit = s.MemUsage.split('/')[1]?.trim();
                                 // Parse NetIO "rx / tx" string into raw bytes
                                 const [rxStr, txStr] = s.NetIO.split(' / ');
+                                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                 const parseBytes = (str: string) => {
                                     if (!str) return 0;
                                     const units = { 'B': 1, 'kB': 1024, 'MB': 1024 ** 2, 'GB': 1024 ** 3, 'TB': 1024 ** 4 };
@@ -160,8 +161,9 @@ export async function GET() {
         const result = Array.from(containers.values());
         return NextResponse.json(result);
 
-    } catch (error: any) {
-        console.error('Error fetching docker info:', error);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+        console.error('Error fetching docker info:', e);
         return NextResponse.json(
             { error: 'Failed to fetch docker info' },
             { status: 500 }

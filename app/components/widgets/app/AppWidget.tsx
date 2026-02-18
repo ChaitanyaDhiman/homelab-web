@@ -18,6 +18,7 @@ export function AppWidget({ widget, isEditMode, onRemove, onUpdateConfig }: Widg
 
     useEffect(() => {
         if (apps.length > 0 && configuredAppId) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSelectedApp(apps.find(a => a.id === configuredAppId));
         }
     }, [apps, configuredAppId]);

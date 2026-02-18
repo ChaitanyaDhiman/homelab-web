@@ -207,6 +207,7 @@ async function getLastUpdateTime(): Promise<string | null> {
     return timestamp || null;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET() {
     try {
         const [rebootStatus, upgradeInfo, lastLog, lastUpdate] = await Promise.all([

@@ -42,6 +42,7 @@ export async function GET() {
             throw new Error(`GitHub API error: ${response.statusText}`);
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data: GitHubRelease = await response.json();
         const latestVersionTag = data.tag_name; // e.g., "v1.0.1" or "1.0.1"
 

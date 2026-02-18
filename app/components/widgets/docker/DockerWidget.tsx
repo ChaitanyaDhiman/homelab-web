@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { WidgetProps } from '@/app/types/widgets';
 import { BaseWidget } from '@/app/components/widgets/BaseWidget';
 import { useDocker } from '@/app/hooks/useDocker';
-import { Box, Activity, Cpu, HardDrive, Network, Clock, Server } from 'lucide-react';
+import { Box, Server } from "lucide-react";
 
-export function DockerWidget({ widget, isEditMode, onRemove }: WidgetProps) {
+export function DockerWidget({ isEditMode, onRemove }: WidgetProps) {
     const { containers, loading, error } = useDocker();
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
 
@@ -14,7 +13,9 @@ export function DockerWidget({ widget, isEditMode, onRemove }: WidgetProps) {
         if (!sortConfig) return 0;
         const { key, direction } = sortConfig;
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let aValue: any = (a as any)[key];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let bValue: any = (b as any)[key];
 
         // Parse numeric values for sorting

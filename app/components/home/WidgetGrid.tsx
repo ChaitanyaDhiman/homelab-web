@@ -13,7 +13,7 @@ import { ServiceHealthWidget } from '@/app/components/widgets/service-health/Ser
 import { StorageWidget } from '@/app/components/widgets/storage/StorageWidget';
 import { AppWidget } from '@/app/components/widgets/app/AppWidget';
 import { FrequentAppsWidget } from '@/app/components/widgets/app/FrequentAppsWidget';
-import { CpuGpuGaugeWidget } from '@/app/components/widgets/system/CpuGpuGauge';
+import { CpuGpuGauge } from '@/app/components/widgets/system/CpuGpuGauge';
 import { CpuTempWidget } from '@/app/components/widgets/system/CpuTempCircle';
 import { GpuTempWidget } from '@/app/components/widgets/system/GpuTempCircle';
 import { StorageBarWidget } from '@/app/components/widgets/storage/StorageBar';
@@ -23,6 +23,7 @@ import { DockerWidget } from '@/app/components/widgets/docker/DockerWidget';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const WIDGET_COMPONENTS: Record<WidgetType, React.ComponentType<any>> = {
     'datetime': DateTimeWidget,
     'datetime-minimal': DateTimeWidget, // Reusing same component for now
@@ -34,7 +35,7 @@ const WIDGET_COMPONENTS: Record<WidgetType, React.ComponentType<any>> = {
     'storage': StorageWidget,
     'app': AppWidget,
     'frequent-apps': FrequentAppsWidget,
-    'cpu-gpu-gauge': CpuGpuGaugeWidget,
+    'cpu-gpu-gauge': CpuGpuGauge,
     'cpu-temp-circle': CpuTempWidget,
     'gpu-temp-circle': GpuTempWidget,
     'storage-bar': StorageBarWidget,
@@ -47,6 +48,15 @@ interface WidgetGridProps {
     widgets: Widget[];
 }
 
+interface LayoutItem {
+    i: string;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    [key: string]: any;
+}
+
 export function WidgetGrid({ widgets }: WidgetGridProps) {
     const { isEditMode, updateLayout, removeWidget, updateWidget } = useWidgets();
     const containerRef = useRef<HTMLDivElement>(null);
@@ -55,6 +65,7 @@ export function WidgetGrid({ widgets }: WidgetGridProps) {
     const isDragging = useRef(false);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
         const updateWidth = () => {
             if (containerRef.current) {
@@ -91,37 +102,11 @@ export function WidgetGrid({ widgets }: WidgetGridProps) {
 
     // ... (width/mounted effects)
 
-    const handleDragStart = useCallback(() => {
-        isDragging.current = true;
-    }, []);
-
-    const handleDragStop = useCallback((layout: any) => {
-        isDragging.current = false;
-        // Trigger update with final layout
-        if (currentLayoutRef.current) {
-            processLayoutUpdate(currentLayoutRef.current);
-        } else {
-            processLayoutUpdate(layout);
-        }
-    }, []);
-
-    const handleResizeStart = useCallback(() => {
-        isDragging.current = true;
-    }, []);
-
-    const handleResizeStop = useCallback((layout: any) => {
-        isDragging.current = false;
-        if (currentLayoutRef.current) {
-            processLayoutUpdate(currentLayoutRef.current);
-        } else {
-            processLayoutUpdate(layout);
-        }
-    }, []);
-
-    const processLayoutUpdate = useCallback((layout: any) => {
+    const processLayoutUpdate = useCallback((layout: LayoutItem[]) => {
         if (!isEditMode) return;
 
         const updatedWidgets = widgets.map(widget => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const layoutItem = layout.find((l: any) => l.i === widget.id);
             if (!layoutItem) return widget;
 
@@ -142,15 +127,43 @@ export function WidgetGrid({ widgets }: WidgetGridProps) {
         updateLayout(updatedWidgets);
     }, [isEditMode, widgets, updateLayout]);
 
+    const handleDragStart = useCallback(() => {
+        isDragging.current = true;
+    }, []);
+
+    const handleDragStop = useCallback((layout: any) => {
+        isDragging.current = false;
+        // Trigger update with final layout
+        if (currentLayoutRef.current) {
+            processLayoutUpdate(currentLayoutRef.current);
+        } else {
+            processLayoutUpdate(layout);
+        }
+    }, [processLayoutUpdate]);
+
+    const handleResizeStart = useCallback(() => {
+        isDragging.current = true;
+    }, []);
+
+    const handleResizeStop = useCallback((layout: any) => {
+        isDragging.current = false;
+        if (currentLayoutRef.current) {
+            processLayoutUpdate(currentLayoutRef.current);
+        } else {
+            processLayoutUpdate(layout);
+        }
+    }, [processLayoutUpdate]);
+
     const handleLayoutChange = useCallback((currentLayout: any) => {
-        currentLayoutRef.current = currentLayout;
+        const typedLayout = currentLayout as LayoutItem[];
+        currentLayoutRef.current = typedLayout;
 
         // Only update context if we're not actively dragging
         if (!isEditMode || isDragging.current) return;
 
         // Check if layout actually changed to prevent render loops
         const hasChanges = widgets.some(widget => {
-            const item = currentLayout.find((l: any) => l.i === widget.id);
+            const item = typedLayout.find((l: LayoutItem) => l.i === widget.id);
             if (!item) return false;
             // Compare layout properties
             return (
@@ -162,7 +175,7 @@ export function WidgetGrid({ widgets }: WidgetGridProps) {
         });
 
         if (hasChanges) {
-            processLayoutUpdate(currentLayout);
+            processLayoutUpdate(typedLayout);
         }
     }, [isEditMode, widgets, processLayoutUpdate]);
 
@@ -210,7 +223,8 @@ export function WidgetGrid({ widgets }: WidgetGridProps) {
                 onDragStop={handleDragStop}
                 onResizeStart={handleResizeStart}
                 onResizeStop={handleResizeStop}
-                onLayoutChange={handleLayoutChange}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                onLayoutChange={(layout: any) => handleLayoutChange(layout)}
             >
                 {widgets.map(renderWidget)}
             </ResponsiveGridLayout>

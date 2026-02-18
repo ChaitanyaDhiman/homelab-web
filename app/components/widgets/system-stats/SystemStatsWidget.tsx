@@ -5,7 +5,7 @@ import { WidgetProps } from '@/app/types/widgets';
 import { useSystem } from '@/app/contexts/SystemContext';
 import { Cpu, Zap, Thermometer, Fan, Clock } from 'lucide-react';
 
-export function SystemStatsWidget({ widget, isEditMode, onRemove }: WidgetProps) {
+export function SystemStatsWidget({ isEditMode, onRemove }: WidgetProps) {
     const { stats, loading } = useSystem();
 
     const formatUptime = (seconds: number) => {

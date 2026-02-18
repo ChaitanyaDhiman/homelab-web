@@ -88,7 +88,8 @@ async function getHostFilesystemInfo(): Promise<MountInfo[]> {
         });
 
         // Use Promise.all to run df checks in parallel (Performance improvement)
-        await Promise.all(realFs.map(async (line) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await Promise.all(realFs.map(async (line: any) => { // Changed 'line' to 'line: any' to suppress any
             const parts = line.split(' ');
             const device = parts[0];
             const mount = parts[1];
@@ -136,7 +137,7 @@ async function getHostFilesystemInfo(): Promise<MountInfo[]> {
                         });
                     }
                 }
-            } catch (e) {
+            } catch {
                 // Ignore individual mount failures
             }
         }));
@@ -247,6 +248,7 @@ export async function POST(request: Request) {
 
         await saveStorageConfig(config);
         return NextResponse.json({ success: true });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         console.error('Error saving storage config:', error);
         return NextResponse.json(

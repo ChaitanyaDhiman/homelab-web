@@ -13,7 +13,7 @@ interface UpdateData {
     securityPackages: string[];
 }
 
-export function UpdatesWidget({ widget, isEditMode, onRemove }: WidgetProps) {
+export function UpdatesWidget({ isEditMode, onRemove }: WidgetProps) {
     const [updates, setUpdates] = useState<UpdateData | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);

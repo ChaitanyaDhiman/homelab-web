@@ -17,7 +17,9 @@ const getAllLucideIcons = () => {
     return Object.keys(LucideIcons)
         .filter(
             key =>
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 typeof (LucideIcons as any)[key] === 'object' &&
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (LucideIcons as any)[key].$$typeof &&
                 !key.startsWith('create') &&
                 !key.startsWith('Icon')
@@ -44,6 +46,7 @@ export function AppEditor({ app, onSave, onCancel }: AppEditorProps) {
 
     useEffect(() => {
         if (app) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setId(app.id);
             setName(app.name);
             setDescription(app.description);
@@ -109,6 +112,7 @@ export function AppEditor({ app, onSave, onCancel }: AppEditorProps) {
             );
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const IconComponent = (LucideIcons as any)[icon] || LucideIcons.Box;
         return <IconComponent className="w-5 h-5" />;
     };
@@ -323,6 +327,7 @@ export function AppEditor({ app, onSave, onCancel }: AppEditorProps) {
                                             {iconMode === 'lucide' && (
                                                 <div className="grid grid-cols-8 gap-2">
                                                     {filteredLucideIcons.slice(0, 200).map((iconName) => {
+                                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                                         const Icon = (LucideIcons as any)[iconName];
                                                         return (
                                                             <button

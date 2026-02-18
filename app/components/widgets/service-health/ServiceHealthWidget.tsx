@@ -11,7 +11,7 @@ interface Service {
     status: 'online' | 'offline' | 'degraded';
 }
 
-export function ServiceHealthWidget({ widget, isEditMode, onRemove }: WidgetProps) {
+export function ServiceHealthWidget({ isEditMode, onRemove }: WidgetProps) {
     const [services, setServices] = useState<Service[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -28,9 +28,11 @@ export function ServiceHealthWidget({ widget, isEditMode, onRemove }: WidgetProp
 
                 const allApps = [
                     ...(appsData.uncategorizedApps || []),
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     ...(appsData.categories || []).flatMap((cat: any) => cat.apps)
                 ];
 
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const servicesWithHealth = allApps.map((app: any) => ({
                     id: app.id,
                     name: app.name,

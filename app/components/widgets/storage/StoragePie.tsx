@@ -1,11 +1,10 @@
-
 import { WidgetProps } from '@/app/types/widgets';
 import { BaseWidget } from '@/app/components/widgets/BaseWidget';
 import { useStorage } from '@/app/hooks/useStorage';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
-export function StoragePieWidget({ widget, isEditMode, onRemove }: WidgetProps) {
-    const { data, loading } = useStorage();
+export function StoragePieWidget({ isEditMode, onRemove }: WidgetProps) {
+    const { data } = useStorage();
 
     const totalBytes = data?.drives.reduce((acc, d) => acc + d.total, 0) || 0;
     const usedBytes = data?.drives.reduce((acc, d) => acc + d.used, 0) || 0;
@@ -54,6 +53,7 @@ export function StoragePieWidget({ widget, isEditMode, onRemove }: WidgetProps) 
                                 ))}
                             </Pie>
                             <Tooltip
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 formatter={(value: any) => formatBytes(value)}
                                 contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px' }}
                                 itemStyle={{ color: '#fff' }}
