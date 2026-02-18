@@ -8,12 +8,24 @@ const execFileAsync = promisify(execFile);
 export async function GET() {
     try {
         // Optimize: Fetch only essential data from systeminformation
-        const [cpu, mem, time, netStats] = await Promise.all([
+        const [cpu, mem, time, netStats, netInterfaces] = await Promise.all([
             si.currentLoad(),
             si.mem(),
             si.time(),
-            si.networkStats(),
+            si.networkStats('*'),
+            si.networkInterfaces(),
         ]);
+
+        // Filter for non-internal, operational interfaces
+        const validInterfaces = new Set(
+            (Array.isArray(netInterfaces) ? netInterfaces : [netInterfaces])
+                .filter(iface => !iface.internal && iface.operstate === 'up')
+                .map(iface => iface.iface)
+        );
+
+        // Sum up network stats from valid interfaces
+        const totalRxSec = netStats.reduce((acc, iface) => acc + (validInterfaces.has(iface.iface) ? iface.rx_sec : 0), 0);
+        const totalTxSec = netStats.reduce((acc, iface) => acc + (validInterfaces.has(iface.iface) ? iface.tx_sec : 0), 0);
 
         // Get temperature and fan speed from sensors command
         let fanSpeed = 'Off';
@@ -144,8 +156,8 @@ export async function GET() {
             uptime: time.uptime,
             fanSpeed,
             network: {
-                rx_sec: netStats[0]?.rx_sec ?? 0,
-                tx_sec: netStats[0]?.tx_sec ?? 0,
+                rx_sec: totalRxSec,
+                tx_sec: totalTxSec,
             },
         });
     } catch (error) {

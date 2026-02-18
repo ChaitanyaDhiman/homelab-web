@@ -20,7 +20,7 @@ export function SystemStatsWidget({ widget, isEditMode, onRemove }: WidgetProps)
 
     const getTemperatureColor = (temp: number) => {
         if (temp >= 80) return 'text-red-400';
-        if (temp >= 60) return 'text-yellow-400';
+        if (temp >= 65) return 'text-yellow-400';
         return 'text-green-400';
     };
 
@@ -55,50 +55,57 @@ export function SystemStatsWidget({ widget, isEditMode, onRemove }: WidgetProps)
                 </div>
 
                 {/* GPU Usage */}
-                {stats?.gpu && (
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-gray-400">
-                            <Zap className="w-4 h-4" />
-                            <span className="text-xs">GPU</span>
-                        </div>
-                        <div className="text-2xl font-bold text-white">
-                            {stats.gpu.utilization.toFixed(1)}%
-                        </div>
-                        <div className="w-full bg-white/10 rounded-full h-2">
-                            <div
-                                className="bg-secondary h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${stats.gpu.utilization || 0}%` }}
-                            />
-                        </div>
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-gray-400">
+                        <Zap className="w-4 h-4" />
+                        <span className="text-xs">GPU</span>
                     </div>
-                )}
+                    <div className="text-2xl font-bold text-white">
+                        {stats?.gpu?.utilization.toFixed(1) || '0.0'}%
+                    </div>
+                    <div className="w-full bg-white/10 rounded-full h-2">
+                        <div
+                            className="bg-secondary h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${stats?.gpu?.utilization || 0}%` }}
+                        />
+                    </div>
+                </div>
 
-                {/* Temperature */}
+                {/* CPU Temperature */}
                 <div className="space-y-2">
                     <div className="flex items-center gap-2 text-gray-400">
                         <Thermometer className="w-4 h-4" />
-                        <span className="text-xs">Temp</span>
+                        <span className="text-xs">CPU Temp</span>
                     </div>
                     <div className={`text-2xl font-bold ${getTemperatureColor(stats?.temperature || 0)}`}>
                         {stats?.temperature}°C
                     </div>
                 </div>
 
-                {/* Fan Speed */}
-                {stats?.fanSpeed && (
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-gray-400">
-                            <Fan className="w-4 h-4" />
-                            <span className="text-xs">Fan</span>
-                        </div>
-                        <div className="text-2xl font-bold text-white">
-                            {stats.fanSpeed}
-                        </div>
+                {/* GPU Temperature */}
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-gray-400">
+                        <Thermometer className="w-4 h-4" />
+                        <span className="text-xs">GPU Temp</span>
                     </div>
-                )}
+                    <div className={`text-2xl font-bold ${getTemperatureColor(stats?.gpu?.temperature || 0)}`}>
+                        {stats?.gpu?.temperature || 0}°C
+                    </div>
+                </div>
+
+                {/* Fan Speed */}
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-gray-400">
+                        <Fan className="w-4 h-4" />
+                        <span className="text-xs">Fan</span>
+                    </div>
+                    <div className="text-2xl font-bold text-white">
+                        {stats?.fanSpeed || 'N/A'}
+                    </div>
+                </div>
 
                 {/* Uptime */}
-                <div className="col-span-2 space-y-2">
+                <div className="space-y-2">
                     <div className="flex items-center gap-2 text-gray-400">
                         <Clock className="w-4 h-4" />
                         <span className="text-xs">Uptime</span>

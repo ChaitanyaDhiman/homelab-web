@@ -171,9 +171,34 @@ def check_trigger() -> bool:
     return False
 
 
+def update_package_lists() -> None:
+    """Run apt-get update to refresh package lists from repositories."""
+    print(f"[{datetime.now().isoformat()}] Updating package lists...")
+    
+    # Use apt-get with custom directories pointing to mounted host paths
+    # Note: We need write access to /host/var/lib/apt and /host/var/cache/apt
+    apt_options = (
+        '-o Dir::State=/host/var/lib/apt '
+        '-o Dir::State::status=/host/var/lib/dpkg/status '
+        '-o Dir::Etc=/host/etc/apt '
+        '-o Dir::Cache=/host/var/cache/apt'
+    )
+    
+    cmd = f'apt-get {apt_options} update'
+    exit_code, _, stderr = run_command(cmd)
+    
+    if exit_code != 0:
+        print(f"[{datetime.now().isoformat()}] Warning: apt-get update failed: {stderr}")
+    else:
+        print(f"[{datetime.now().isoformat()}] Package lists updated successfully")
+
+
 def check_updates() -> None:
     """Perform a full update check and write results."""
     print(f"[{datetime.now().isoformat()}] Checking for updates...")
+    
+    # Refresh package lists first to ensure we see the latest updates
+    update_package_lists()
     
     upgrade_info = get_upgrade_info()
     reboot_status = check_reboot_required()

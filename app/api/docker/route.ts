@@ -11,8 +11,8 @@ interface ContainerInfo {
     name: string;
     image: string;
     status: string;
-    state: string; // running, exited, etc.
-    created: string;
+    state: string;
+    updated: string;
     health: string;
 
     // Stats
@@ -20,24 +20,22 @@ interface ContainerInfo {
     memory: string;
     memoryLimit: string;
     netIO: string;
-    blockIO: string;
-    pids: string;
+    netRx?: number;
 }
 
 export async function GET() {
     try {
-        // 1. Fetch container list (for static info + health/status)
-        // Safer: execFile('docker', ['ps', ...])
+        const containers: Map<string, Partial<ContainerInfo>> = new Map();
+        // Index by short ID as well for faster matching
+        const shortIdIndex: Map<string, string> = new Map();
+
+        // 1. Fetch container list
         const { stdout: psOutput } = await execFileAsync('docker', [
             'ps',
             '--all',
             '--format',
             '{{json .}}'
         ]);
-
-        const containers: Map<string, Partial<ContainerInfo>> = new Map();
-        // Index by short ID as well for faster matching
-        const shortIdIndex: Map<string, string> = new Map();
 
         if (psOutput) {
             const lines = psOutput.trim().split('\n');
@@ -51,18 +49,56 @@ export async function GET() {
                         image: c.Image,
                         status: c.Status,
                         state: c.State,
-                        created: c.CreatedAt,
+                        updated: c.CreatedAt,
                         health: c.Status.includes('(healthy)') ? 'healthy' :
                             c.Status.includes('(unhealthy)') ? 'unhealthy' :
-                                c.Status.includes('(health: starting)') ? 'starting' : 'unknown'
+                                c.Status.includes('(health: starting)') ? 'starting' : 'none'
                     };
                     containers.set(c.ID, containerData);
-                    // Match standard 12-char ID or whatever docker uses
                     shortIdIndex.set(c.ID.substring(0, 12), c.ID);
                 } catch (e) {
                     console.error('Error parsing docker ps line:', e);
                 }
             }
+        }
+
+        // 1.5 Fetch StartedAt (Updated) time via inspect
+        try {
+            const ids = Array.from(containers.keys());
+            if (ids.length > 0) {
+                const { stdout: inspectOutput } = await execFileAsync('docker', [
+                    'inspect',
+                    '--format',
+                    '{{.Id}}#{{.State.StartedAt}}',
+                    ...ids
+                ]);
+
+                if (inspectOutput) {
+                    const lines = inspectOutput.trim().split('\n');
+                    for (const line of lines) {
+                        const parts = line.split('#');
+                        if (parts.length >= 2) {
+                            const id = parts[0];
+                            const startedAt = parts[1];
+                            if (containers.has(id)) {
+                                try {
+                                    const date = new Date(startedAt);
+                                    // Format: "YYYY-MM-DD HH:mm:ss"
+                                    const formatted = date.toISOString().replace('T', ' ').substring(0, 19);
+                                    const container = containers.get(id);
+                                    if (container) {
+                                        container.updated = formatted;
+                                    }
+                                } catch (e) {
+                                    // ignore date parse error
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (inspectError) {
+            console.error('Error in docker inspect:', inspectError);
         }
 
         // 2. Fetch stats (for metrics) - only running containers
@@ -82,14 +118,9 @@ export async function GET() {
                         const s = JSON.parse(line);
                         // s = {"BlockIO":"...","CPUPerc":"...","Container":"...","ID":"...","MemPerc":"...","MemUsage":"...","Name":"...","NetIO":"...","PIDs":"..."}
 
-                        // Optimization: O(1) Lookup
-                        // Try Full ID -> Try Short ID Index -> Fail
                         let targetId = containers.has(s.ID) ? s.ID : shortIdIndex.get(s.ID);
 
                         if (!targetId && s.Container) {
-                            // Sometimes ID is name?
-                            // Fallback to name match only if needed?
-                            // But s.ID is usually the ID.
                             targetId = containers.has(s.Container) ? s.Container : shortIdIndex.get(s.Container);
                         }
 
@@ -99,9 +130,22 @@ export async function GET() {
                                 container.cpu = s.CPUPerc;
                                 container.memory = s.MemUsage.split('/')[0].trim();
                                 container.memoryLimit = s.MemUsage.split('/')[1]?.trim();
-                                container.netIO = s.NetIO;
-                                container.blockIO = s.BlockIO;
-                                container.pids = s.PIDs;
+                                // Parse NetIO "rx / tx" string into raw bytes
+                                const [rxStr, txStr] = s.NetIO.split(' / ');
+                                const parseBytes = (str: string) => {
+                                    if (!str) return 0;
+                                    const units = { 'B': 1, 'kB': 1024, 'MB': 1024 ** 2, 'GB': 1024 ** 3, 'TB': 1024 ** 4 };
+                                    const match = str.match(/([\d.]+)([a-zA-Z]+)/);
+                                    if (match) {
+                                        const val = parseFloat(match[1]);
+                                        const unit = match[2] as keyof typeof units;
+                                        return val * (units[unit] || 1);
+                                    }
+                                    return 0;
+                                };
+
+                                container.netRx = parseBytes(rxStr);
+                                container.netIO = s.NetIO.replace(/(\d)([A-Za-z])/g, '$1 $2').replace('kB', 'KB').replace('GB', 'GB').replace('MB', 'MB').replace('B', 'B');
                             }
                         }
                     } catch (e) {
@@ -110,12 +154,10 @@ export async function GET() {
                 }
             }
         } catch (statsError) {
-            console.error('Error fetching docker stats (might be no running containers):', statsError);
+            console.error('Error fetching docker stats:', statsError);
         }
 
-        // Convert map values to array
         const result = Array.from(containers.values());
-
         return NextResponse.json(result);
 
     } catch (error: any) {

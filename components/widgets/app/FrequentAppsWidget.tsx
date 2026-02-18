@@ -24,12 +24,25 @@ export function FrequentAppsWidget({ widget, isEditMode, onRemove }: WidgetProps
                 .map(id => apps.find(a => a.id === id))
                 .filter((a): a is App => !!a);
 
-            if (topApps.length === 0) {
-                const favorites = apps.filter(a => a.isFavorite).slice(0, 4);
-                setFrequentApps(favorites.length > 0 ? favorites : apps.slice(0, 4));
-            } else {
-                setFrequentApps(topApps);
+            let displayApps = topApps;
+
+            // If fewer than 3 apps, fill with favorites first
+            if (displayApps.length < 3) {
+                const favorites = apps
+                    .filter(a => a.isFavorite && !displayApps.some(da => da.id === a.id))
+                    .slice(0, 4 - displayApps.length);
+                displayApps = [...displayApps, ...favorites];
             }
+
+            // If still fewer than 3, fill with other available apps
+            if (displayApps.length < 3) {
+                const others = apps
+                    .filter(a => !displayApps.some(da => da.id === a.id))
+                    .slice(0, 4 - displayApps.length);
+                displayApps = [...displayApps, ...others];
+            }
+
+            setFrequentApps(displayApps);
         }
     }, [apps, loading, widget.id]);
 
