@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const DEFAULTS_PATH = '/app/defaults/default.json';
-const CONFIG_DIR = '/app/app/config';
+const DEFAULTS_PATH = '/app/config/default.json';
+const CONFIG_DIR = '/app/config';
 
 function init() {
     console.log('Initializing configuration...');

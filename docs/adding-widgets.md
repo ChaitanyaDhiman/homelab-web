@@ -13,15 +13,15 @@ Adding a widget involves 3 main steps:
 
 ### 1. Create the Widget Component
 
-Create a new directory in `components/widgets/` for your widget (e.g., `components/widgets/mytime/`).
+Create a new directory in `app/components/widgets/` for your widget (e.g., `app/components/widgets/mytime/`).
 Create a file `MyTimeWidget.tsx`.
 
 It must accept `WidgetProps` and wrap its content in `BaseWidget`.
 
 ```tsx
-// components/widgets/mytime/MyTimeWidget.tsx
-import { BaseWidget } from '@/components/widgets/BaseWidget';
-import { WidgetProps } from '@/types/widgets';
+// app/components/widgets/mytime/MyTimeWidget.tsx
+import { BaseWidget } from '@/app/components/widgets/BaseWidget';
+import { WidgetProps } from '@/app/types/widgets';
 
 export function MyTimeWidget({ widget, isEditMode, onRemove }: WidgetProps) {
     return (
@@ -40,10 +40,10 @@ export function MyTimeWidget({ widget, isEditMode, onRemove }: WidgetProps) {
 
 ### 2. Update Widget Types
 
-Add your new widget type string to `types/widgets.ts`.
+Add your new widget type string to `app/types/widgets.ts`.
 
 ```typescript
-// types/widgets.ts
+// app/types/widgets.ts
 export type WidgetType = 
     | 'datetime' 
     | 'weather' 
@@ -52,10 +52,10 @@ export type WidgetType =
 
 ### 3. Register Metadata
 
-Add the widget's metadata to `lib/widgetRegistry.ts`. This controls how it appears in the "Add Widget" picker.
+Add the widget's metadata to `app/lib/widgetRegistry.ts`. This controls how it appears in the "Add Widget" picker.
 
 ```typescript
-// lib/widgetRegistry.ts
+// app/lib/widgetRegistry.ts
 export const WIDGET_METADATA: Record<WidgetType, WidgetMetadata> = {
     // ... other widgets
     'my-time': {
@@ -73,11 +73,11 @@ export const WIDGET_METADATA: Record<WidgetType, WidgetMetadata> = {
 
 ### 4. Map the Component
 
-Finally, map the type string to the component in `components/home/WidgetGrid.tsx`.
+Finally, map the type string to the component in `app/components/home/WidgetGrid.tsx`.
 
 ```tsx
-// components/home/WidgetGrid.tsx
-import { MyTimeWidget } from '@/components/widgets/mytime/MyTimeWidget';
+// app/components/home/WidgetGrid.tsx
+import { MyTimeWidget } from '@/app/components/widgets/mytime/MyTimeWidget';
 
 const WIDGET_COMPONENTS: Record<WidgetType, React.ComponentType<any>> = {
     // ...
@@ -86,7 +86,7 @@ const WIDGET_COMPONENTS: Record<WidgetType, React.ComponentType<any>> = {
 ```
 
 ## Icons
-To add a new icon support, update `getWidgetIcon` in `lib/widgetRegistry.ts` if the icon isn't already imported/mapped.
+To add a new icon support, update `getWidgetIcon` in `app/lib/widgetRegistry.ts` if the icon isn't already imported/mapped.
 
 ## That's it!
 Your widget will now appear in the "Add Widget" picker under the category you specified.

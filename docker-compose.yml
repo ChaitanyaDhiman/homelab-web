@@ -32,7 +32,7 @@ services:
       # Shared volume for update status (needs write access for trigger file)
       - update-data:/data
       # Persist user configuration files across rebuilds
-      - /srv/docker-data/nexlab/config:/app/app/config
+      - /srv/docker-data/nexlab/config:/app/config
     depends_on:
       - update-agent
     labels:

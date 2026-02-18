@@ -97,6 +97,21 @@ Triggers an immediate update check via the sidecar agent.
 { "message": "Refresh triggered" }
 ```
 
+### Check Updates
+`GET /api/check-update`
+
+Checks GitHub for the latest release version.
+
+**Response:**
+```json
+{
+  "updateAvailable": false,
+  "currentVersion": "1.0.0",
+  "latestVersion": "1.0.0",
+  "url": "https://github.com/..."
+}
+```
+
 ## Configuration APIs
 
 ### Apps Config

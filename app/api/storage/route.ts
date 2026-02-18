@@ -5,12 +5,12 @@ import { existsSync } from 'fs';
 import { exec } from 'child_process';
 import util from 'util';
 import path from 'path';
-import { StorageConfig } from '@/types/storage';
+import { StorageConfig } from '@/app/types/storage';
 
 const execAsync = util.promisify(exec);
 
-const CONFIG_PATH = path.join(process.cwd(), 'app/config/storage.json');
-const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'app/config/default.json'); // Keep reading default synchronously? No, try async.
+const CONFIG_PATH = path.join(process.cwd(), 'config/storage.json');
+const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'config/default.json'); // Keep reading default synchronously? No, try async.
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;

@@ -1,0 +1,55 @@
+{
+  "uncategorizedApps": [
+    {
+      "id": "jellyfin",
+      "name": "Jellyfin",
+      "description": "Media Server",
+      "url": "http://jellyfin.home",
+      "icon": "Box",
+      "isFavorite": false
+    },
+    {
+      "id": "immich",
+      "name": "Immich",
+      "description": "Image cloud",
+      "url": "http://immich.home",
+      "icon": "Box",
+      "isFavorite": false
+    },
+    {
+      "id": "sonarr",
+      "name": "Sonarr",
+      "description": "Sonarr",
+      "url": "http://sonarr.home",
+      "icon": "Box",
+      "isFavorite": false
+    },
+    {
+      "id": "pihole",
+      "name": "Pihole",
+      "description": "DNS",
+      "url": "http://pihole.home/admin",
+      "icon": "Box",
+      "isFavorite": false
+    }
+  ],
+  "categories": [
+    {
+      "id": "ai",
+      "name": "AI",
+      "description": "Local AI",
+      "apps": [
+        {
+          "id": "open-webui",
+          "name": "Open WebUI",
+          "description": "Web UI to run llms locally",
+          "url": "http://ai.home",
+          "icon": "OllamaIcon",
+          "healthCheckUrl": "http://open-webui:8080",
+          "isFavorite": false
+        }
+      ]
+    }
+  ],
+  "tileSize": "medium"
+}

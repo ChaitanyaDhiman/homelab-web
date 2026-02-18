@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { loadAppsConfig } from '@/lib/appsConfig';
+import { loadAppsConfig } from '@/app/lib/appsConfig';
 
 export const dynamic = 'force-dynamic';
 

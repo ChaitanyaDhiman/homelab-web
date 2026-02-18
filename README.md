@@ -189,22 +189,21 @@ For secure access with HTTPS:
 homelab-web/
 ├── app/                      # Next.js app directory
 │   ├── api/                  # API routes (health, system, storage, updates, apps)
-│   ├── config/               # Configuration files
-│   │   ├── apps.json         # User app configuration (auto-created)
-│   │   ├── apps.example.json # Example configuration template
-│   │   ├── storage.json      # User storage configuration (auto-created)
-│   │   └── storage.example.json # Example storage configuration
+│   ├── components/           # React components (moved from root)
+│   │   ├── dashboard/        # Dashboard widgets
+│   │   ├── icons/            # Custom icons
+│   │   ├── settings/         # Settings components
+│   │   └── ui/               # Reusable UI elements
+│   ├── contexts/             # Centralized state management (moved from root)
+│   ├── hooks/                # Custom React hooks (moved from root)
+│   ├── lib/                  # Utility functions (moved from root)
+│   ├── types/                # TypeScript definitions (moved from root)
 │   └── globals.css           # Global styles & theme
-├── components/               # React components
-│   ├── dashboard/            # Dashboard widgets (HealthSummary, StorageWidget, SystemUpdateStatus)
-│   ├── icons/                # Custom icons (OllamaIcon)
-│   ├── settings/             # Settings components (AppsManager, StorageManager)
-│   ├── views/                # Main views (HomeView, AppsView, SettingsView)
-│   └── ui/                   # Reusable UI elements
-├── contexts/                 # Centralized state management
-│   ├── HealthContext.tsx     # Service health polling
-│   ├── SystemContext.tsx     # System stats polling
-│   └── SettingsContext.tsx   # User preferences
+├── config/                   # Configuration files (moved from app/config)
+│   ├── apps.json             # User app configuration
+│   ├── apps.example.json     # Example configuration
+│   ├── storage.json          # User storage configuration
+│   └── default.json          # Default settings
 ├── docker-services/          # Docker services configuration
 ├── start-homelab.sh          # Deployment helper script
 ├── docker-compose.yml        # Dashboard compose file
@@ -216,7 +215,7 @@ homelab-web/
 
 ### Apps Configuration
 
-The dashboard uses a key-value JSON configuration system. `app/config/apps.json` stores your applications.
+The dashboard uses a key-value JSON configuration system. `config/apps.json` stores your applications.
 
 #### Initial Setup
 
@@ -240,7 +239,7 @@ The easiest way to manage apps is through the web interface:
 
 ### Storage Configuration
 
-Manage your monitored drives via **Settings → Storage**. `app/config/storage.json` stores this configuration.
+Manage your monitored drives via **Settings → Storage**. `config/storage.json` stores this configuration.
 
 1. **Automatic Creation**: If missing, `storage.json` is created from `storage.example.json`.
 2. **Settings UI**: Add, edit, or remove drives in the Settings tab.
@@ -370,6 +369,17 @@ The update-agent check interval can be configured via environment variable:
 environment:
   - CHECK_INTERVAL_SECONDS=3600  # Default: 1 hour
 ```
+
+## 🔄 Versioning & Auto-Updates
+
+The dashboard includes built-in version tracking and an auto-update mechanism:
+
+### Features
+- **Version Display**: Current version (e.g., `v1.0.0`) is always visible in the sidebar footer.
+- **Update Notifications**: Automatically checks GitHub Releases for new versions. A pulsing "Update Available" indicator appears when a newer version is found.
+- **CI/CD Pipeline**: 
+  - Uses GitHub Actions (`.github/workflows/docker-publish.yml`) to automatically build and publish Docker images to GHCR on every push to `master`.
+  - Simplifies deployment updates by ensuring the latest image is always available.
 
 ## 📡 API Documentation
 

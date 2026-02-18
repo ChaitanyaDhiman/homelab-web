@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
-import { SettingsProvider } from "@/contexts/SettingsContext";
-import { HealthProvider } from "@/contexts/HealthContext";
-import { SystemProvider } from "@/contexts/SystemContext";
-import { WidgetProvider } from "@/contexts/WidgetContext";
+import { SettingsProvider } from "@/app/contexts/SettingsContext";
+import { HealthProvider } from "@/app/contexts/HealthContext";
+import { SystemProvider } from "@/app/contexts/SystemContext";
+import { WidgetProvider } from "@/app/contexts/WidgetContext";
 
 const outfit = Outfit({
   subsets: ["latin"],

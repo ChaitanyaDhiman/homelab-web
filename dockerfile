@@ -23,7 +23,7 @@ COPY . .
 
 # Setup Defaults and Entrypoint
 RUN mkdir -p /app/defaults /app/scripts
-COPY app/config/default.json /app/defaults/default.json
+COPY config/default.json /app/defaults/default.json
 COPY scripts/init-config.js /app/scripts/init-config.js
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh

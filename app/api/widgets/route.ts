@@ -3,8 +3,8 @@ import fs from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
 
-const CONFIG_PATH = path.join(process.cwd(), 'app/config/widgets.json');
-const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'app/config/default.json');
+const CONFIG_PATH = path.join(process.cwd(), 'config/widgets.json');
+const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'config/default.json');
 
 async function getWidgetsConfig() {
     // If widgets.json exists, use it

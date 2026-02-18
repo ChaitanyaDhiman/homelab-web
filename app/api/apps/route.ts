@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { loadAppsConfig, saveAppsConfig } from '@/lib/appsConfig';
-import { AppsConfig } from '@/types/apps';
+import { loadAppsConfig, saveAppsConfig } from '@/app/lib/appsConfig';
+import { AppsConfig } from '@/app/types/apps';
 
 export async function GET() {
     try {

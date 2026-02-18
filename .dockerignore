@@ -37,9 +37,9 @@ docker-compose*.yml
 .dockerignore
 
 # User configuration files (these should be mounted as volumes)
-app/config/apps.json
-app/config/storage.json
-app/config/widgets.json
+config/apps.json
+config/storage.json
+config/widgets.json
 
 # Testing
 coverage
