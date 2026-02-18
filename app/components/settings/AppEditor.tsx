@@ -5,6 +5,8 @@ import { App } from "@/app/types/apps";
 import { X, Search, Link as LinkIcon } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import Image from "next/image";
+import { NexLabIcon } from "@/app/components/icons/NexLabIcon";
+import { OllamaIcon } from "@/app/components/icons/OllamaIcon";
 
 interface AppEditorProps {
     app: App | null;
@@ -28,7 +30,12 @@ const getAllLucideIcons = () => {
 };
 
 // Custom icons from components/icons folder
-const CUSTOM_ICONS = ["NexLabIcon", "OllamaIcon"];
+// Custom icons from components/icons folder
+const CUSTOM_ICON_COMPONENTS: Record<string, any> = {
+    NexLabIcon,
+    OllamaIcon,
+};
+const CUSTOM_ICONS = Object.keys(CUSTOM_ICON_COMPONENTS);
 
 export function AppEditor({ app, onSave, onCancel }: AppEditorProps) {
     const [id, setId] = useState(app?.id || "");
@@ -102,6 +109,8 @@ export function AppEditor({ app, onSave, onCancel }: AppEditorProps) {
         iconName.toLowerCase().includes(iconSearch.toLowerCase())
     );
 
+
+
     // Render icon preview
     const renderIconPreview = () => {
         if (iconMode === 'url' && iconUrl) {
@@ -110,6 +119,11 @@ export function AppEditor({ app, onSave, onCancel }: AppEditorProps) {
                     <Image src={iconUrl} alt="Icon" fill className="object-contain" />
                 </div>
             );
+        }
+
+        if (CUSTOM_ICON_COMPONENTS[icon]) {
+            const IconComponent = CUSTOM_ICON_COMPONENTS[icon];
+            return <IconComponent className="w-5 h-5" />;
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

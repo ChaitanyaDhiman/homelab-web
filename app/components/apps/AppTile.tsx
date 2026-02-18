@@ -1,12 +1,10 @@
-"use client";
-
-
 import { App } from "@/app/types/apps";
 import { motion } from "framer-motion";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { ServiceHealthIndicator } from "@/app/components/apps/ServiceHealthIndicator";
 import { getIconComponent } from "@/app/lib/iconUtils";
+import { createElement } from "react";
 
 interface AppTileProps {
     app: App;
@@ -14,7 +12,6 @@ interface AppTileProps {
 }
 
 export function AppTile({ app, tileSize = 'medium' }: AppTileProps) {
-    // eslint-disable-next-line react/no-unstable-nested-components
     const IconComponent = getIconComponent(app.icon);
     const isSmall = tileSize === 'small';
 
@@ -32,7 +29,9 @@ export function AppTile({ app, tileSize = 'medium' }: AppTileProps) {
             >
                 <div className={`rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors ${isSmall ? 'p-2' : 'p-3 mb-4 inline-block'
                     }`}>
-                    <IconComponent className={`${isSmall ? 'w-5 h-5' : 'w-8 h-8'} text-[var(--primary)]`} />
+                    {createElement(IconComponent, {
+                        className: `${isSmall ? 'w-5 h-5' : 'w-8 h-8'} text-[var(--primary)]`
+                    })}
                 </div>
 
                 <div className={`absolute ${isSmall ? 'right-0 top-1/2 -translate-y-1/2 scale-75 origin-right' : 'top-0 right-0'
