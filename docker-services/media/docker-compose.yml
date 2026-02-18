@@ -35,7 +35,7 @@ services:
       - /srv/docker-data/qbittorrent/config:/config
       - /mnt/media:/data
     ports:
-    # - "8080:8080" # Web UI
+      # - "8080:8080" # Web UI
       - "6881:6881" # TCP Data Port
       - "6881:6881/udp" # UDP Data Port
     restart: unless-stopped
@@ -84,8 +84,9 @@ services:
 
   # --- REQUESTS UI (Netflix-style interface) ---
   jellyseerr:
-    image: fallenbagel/jellyseerr:latest
+    image: ghcr.io/seerr-team/seerr:latest
     container_name: jellyseerr
+    init: true
     environment:
       - PUID=1000
       - PGID=1000
