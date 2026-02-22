@@ -2,6 +2,7 @@ name: Verify
 
 on:
   push:
+    branches: [ "master", "dev", "release/*", "hotfix/*" ]
   pull_request:
 
 jobs:
@@ -19,7 +20,40 @@ jobs:
       - name: Run Lint
         run: npm run lint
 
+  test-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run Unit Tests
+        run: npm run test --if-present
+
+  test-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stub - Integration Tests
+        run: |
+          echo "Placeholder for Integration Tests."
+          echo "Add integration test command here (e.g., npm run test:integration)"
+
+  test-functional:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stub - Functional/E2E Tests
+        run: |
+          echo "Placeholder for Functional/E2E Tests."
+          echo "Add functional test command here (e.g., npx playwright test or cypress run)"
+
   build:
+    needs: [lint, test-unit, test-integration, test-functional]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
