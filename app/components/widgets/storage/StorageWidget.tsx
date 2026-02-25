@@ -44,8 +44,8 @@ export function StorageWidget({ isEditMode, onRemove }: WidgetProps) {
     }, []);
 
     const getUsageColor = (percentage: number) => {
-        if (percentage >= 90) return 'bg-red-500';
-        if (percentage >= 75) return 'bg-yellow-500';
+        if (percentage >= 95) return 'bg-red-500';
+        if (percentage >= 80) return 'bg-yellow-500';
         return 'bg-green-500';
     };
 

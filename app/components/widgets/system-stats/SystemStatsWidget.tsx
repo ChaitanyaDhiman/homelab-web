@@ -3,7 +3,7 @@
 import { BaseWidget } from '../BaseWidget';
 import { WidgetProps } from '@/app/types/widgets';
 import { useSystem } from '@/app/contexts/SystemContext';
-import { Cpu, Zap, Thermometer, Fan, Clock, MemoryStick } from 'lucide-react';
+import { Cpu, Zap, Thermometer, Fan, Clock, MemoryStick, Gpu } from 'lucide-react';
 
 export function SystemStatsWidget({ isEditMode, onRemove }: WidgetProps) {
     const { stats, loading } = useSystem();
@@ -70,7 +70,7 @@ export function SystemStatsWidget({ isEditMode, onRemove }: WidgetProps) {
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <div className="flex items-center gap-2 text-gray-400">
-                            <Zap className="w-4 h-4" />
+                            <Gpu className="w-4 h-4" />
                             <span className="text-xs">GPU</span>
                         </div>
                         <div className="text-2xl font-bold text-white">
