@@ -21,14 +21,15 @@ services:
       FTLCONF_webserver_port: "8081"
       FTLCONF_webserver_api_password: ${PIHOLE_API_PASSWORD}
       IPv6: true
-      FTLCONF_REPLY_ADDR6: fd00::197
+      FTLCONF_REPLY_ADDR6: fd00:dead:beef:2::197
     volumes:
       - /srv/docker/pihole/etc-pihole:/etc/pihole
       - /srv/docker/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
     cap_add:
       - NET_ADMIN
     networks:
-      - proxy_net
+      proxy_net :
+        ipv6_address: fd00:dead:beef:2::197
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
 

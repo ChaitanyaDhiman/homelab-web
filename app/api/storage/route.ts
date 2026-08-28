@@ -101,40 +101,41 @@ async function getHostFilesystemInfo(): Promise<MountInfo[]> {
                 : mount;
 
             try {
-                const dfPath = isDocker ? `${hostRootPrefix}${actualMount === '/' ? '' : actualMount}` : actualMount;
+                const possiblePaths = isDocker
+                    ? [`${hostRootPrefix}${actualMount === '/' ? '' : actualMount}`, actualMount]
+                    : [actualMount];
 
-                // Validate path exists before exec (Security/Stability)
-                try {
-                    await fs.access(dfPath);
-                } catch {
-                    return; // Skip if path not accessible
-                }
+                for (const dfPath of possiblePaths) {
+                    try {
+                        await fs.access(dfPath);
+                    } catch {
+                        continue; // Skip if path not accessible
+                    }
 
-                // Use execFile or careful exec. Since we need shell for pipes (tail), we use exec but sanitize quote.
-                // However, dfPath is from verified mount points.
-                const { stdout } = await execAsync(`df -B1 "${dfPath.replace(/"/g, '\\"')}" 2>/dev/null | tail -1`);
-                const dfParts = stdout.trim().split(/\s+/);
+                    const { stdout } = await execAsync(`df -B1 "${dfPath.replace(/"/g, '\\"')}" 2>/dev/null | tail -1`);
+                    const dfParts = stdout.trim().split(/\s+/);
 
-                if (dfParts.length >= 5) {
-                    const total = parseInt(dfParts[1], 10) || 0;
-                    const used = parseInt(dfParts[2], 10) || 0;
-                    const available = parseInt(dfParts[3], 10) || 0;
-                    const percentage = parseInt(dfParts[4].replace('%', ''), 10) || 0;
+                    if (dfParts.length >= 5) {
+                        const total = parseInt(dfParts[1], 10) || 0;
+                        const used = parseInt(dfParts[2], 10) || 0;
+                        const available = parseInt(dfParts[3], 10) || 0;
+                        const percentage = parseInt(dfParts[4].replace('%', ''), 10) || 0;
+                        const returnedMount = dfParts[dfParts.length - 1];
 
-                    if (total > 0) {
-                        // Push to thread-safe array (JS is single threaded event loop, so push is safe)
-                        // But we need to check duplicates?
-                        // Parallel execution means order isn't guaranteed, but that's fine.
-                        // We filter duplicates at the end or use a Map.
-                        mounts.push({
-                            device,
-                            mount: actualMount,
-                            fstype,
-                            total,
-                            used,
-                            available,
-                            percentage,
-                        });
+                        // To prevent returning parent filesystem stats (e.g. root) for unmounted paths in Docker,
+                        // ensure that the returned mount point explicitly matches our expected path.
+                        if (total > 0 && (!isDocker || returnedMount === dfPath)) {
+                            mounts.push({
+                                device,
+                                mount: actualMount,
+                                fstype,
+                                total,
+                                used,
+                                available,
+                                percentage,
+                            });
+                            break; // Successfully got correct mount stats
+                        }
                     }
                 }
             } catch {
